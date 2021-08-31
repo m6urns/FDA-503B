@@ -29,13 +29,13 @@ library(plotly)
 #Import
 
 #Import Facility Information
-facility_info <- read_excel("~/Desktop/bookdown-minimal-master/data/facility_info.xlsx")
+facility_info <- read_excel("~/Desktop/FDA-503B/data/facility_info.xlsx")
 
 # facility_info <- cbind(geocode(as.character(facility_info$City)), facility_info)
 # write.csv(facility_info, "~/Desktop/facility_info.csv")
 
 #Import Geographic data
-geographic_data <- read_excel("~/Desktop/bookdown-minimal-master/data/geographic_data.xlsx")
+geographic_data <- read_excel("~/Desktop/FDA-503B/data/geographic_data.xlsx")
 
 #Import Product List
 #product_list <- read_excel("~/Desktop/bookdown-minimal-master/data/Product List.xlsx")
@@ -63,8 +63,13 @@ geographic_data <- read_excel("~/Desktop/bookdown-minimal-master/data/geographic
 
  # Modify Product Names to avoid identicals being id as single products
 
-raw_product_list <- read_csv("~/Desktop/CompiledProductList.csv")
-product_segmentation <- read_excel("~/Desktop/Outsourcing Facility Product Segmentation.xlsx")
+## Import Raw Product List
+
+raw_product_list <- read_csv("~/Desktop/FDA-503B/data/CompiledProductList.csv")
+
+## Import Raw Segmentation Data
+
+product_segmentation <- read_excel("~/Desktop/FDA-503B/data/Outsourcing Facility Product Segmentation.xlsx")
 
 #Reformat
 product_segmentation_refor <- product_segmentation %>%
@@ -350,7 +355,7 @@ bound_rename <- bind_rows(modify_blt, modify_lidoepi, modify_lidoepitetra, modif
                           modify_lidoprilotetra, modify_lidophen, modify_lidobupi,
                           modify_asparticglut, modify_lidotetrasol, modify_fent,
                           modify_phenlido, modify_troicamide, modify_tropphencyc,
-                          modify_meth, modify_lidocainehydro, modify_vancomycin,
+                          modify_lidocainehydro, modify_vancomycin,
                           modify_hydrotret, modify_finestride)
 
 products_in_each<- products_in_each %>%
@@ -492,7 +497,7 @@ products_single_seg <- bind_rows(products_dental, products_other, products_derma
     left_join(facility_info, by = "Facility")
   
   #View(facility_product_count)
-  write.csv(facility_product_count, "~/Desktop/Facility Product Count.csv")
+  #write.csv(facility_product_count, "~/Desktop/Facility Product Count.csv")
   
   #Facility_Product_Count <- read_csv("~/Desktop/Facility Product Count.csv")
 
