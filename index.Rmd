@@ -1,0 +1,3199 @@
+---
+title: "FDA 503B Product Report"
+author: "08/30/2021 v1.0"
+site: bookdown::bookdown_site
+documentclass: book
+output:
+  bookdown::gitbook: default
+  #bookdown::pdf_book: default
+  #bookdown::html_document2: default
+---
+
+```{r import_libraries, include=FALSE, echo = FALSE, message=FALSE, cache = FALSE, warning = FALSE}
+
+library(tidyverse)
+library(readr)
+library(readxl)
+library(gt)
+library(ggplot2)
+library(maps)
+library(DT)
+library(ggrepel)
+library(ggmap)
+library(plotly)
+
+```
+
+```{r import_data, include=FALSE, echo = FALSE, message=FALSE, cache = FALSE}
+
+#Import
+
+#Import Facility Information
+facility_info <- read_excel("~/Desktop/bookdown-minimal-master/data/facility_info.xlsx")
+
+# facility_info <- cbind(geocode(as.character(facility_info$City)), facility_info)
+# write.csv(facility_info, "~/Desktop/facility_info.csv")
+
+#Import Geographic data
+geographic_data <- read_excel("~/Desktop/bookdown-minimal-master/data/geographic_data.xlsx")
+
+#Import Product List
+#product_list <- read_excel("~/Desktop/bookdown-minimal-master/data/Product List.xlsx")
+
+#Modify for graphics
+#product_list_graphics <- product_list 
+
+#Import Facility Product Count (do you like to cause yourself pain?)
+# facility_product_count <- read_excel("~/Desktop/bookdown-minimal-master/data/Facility Product Count.xlsx") %>%
+#   mutate(Facility = replace(Facility, Facility == "Right Value Drug Stores",
+#                             "Right Value Drug Stores llc dba Carie Boyd's Prescription Shop")) %>%
+#   mutate(Facility = replace(Facility, Facility == "Axia Pharmaceuticals",
+#                             "Fusion IV Pharmaceuticals, Inc. dba Axia Pharmaceuticals")) %>%
+#   mutate(Facility = replace(Facility, Facility == "Advanced Compounding Solutions",
+#                             "New England Life Care LLC dba Advanced Compounding Solutions")) %>%
+#   mutate(Facility = replace(Facility, Facility == "Fagron Sterile Services LLC",
+#                             "Fagron Compounding Services LLC dba Fagron Sterile Services LLC")) %>%
+#   mutate(Facility = replace(Facility, Facility == "Asteria Health",
+#                             "F. H. Investments. Inc. DBA Asteria Health")) %>%
+#   mutate(Facility = replace(Facility, Facility == "Leiters Health",
+#                             "Denver Solutions, LLC dba Leiters Health")) %>%
+#   mutate(Facility = replace(Facility, Facility == "Complete",
+#                             "Complete Pharmacy and Medical Solutions"))  #%>%
+  #mutate(UID = row_number())
+
+ # Modify Product Names to avoid identicals being id as single products
+
+raw_product_list <- read_csv("~/Desktop/CompiledProductList.csv")
+product_segmentation <- read_excel("~/Desktop/Outsourcing Facility Product Segmentation.xlsx")
+
+#Reformat
+product_segmentation_refor <- product_segmentation %>%
+  select(-...8, -`Active Ingredients Info`, -`Package Description`, -`NDC Package Code`,
+         -`Estab. Name`, -`Report Year`, -Dosage) %>%
+  rename(Active = `Active Ingredients`,
+         SkinCare = `Skin Care`,
+         PlasticSurgery = `Plastic Surgery`,
+         FacialPlasticSurgery = `Facial Plastic Surgery`,
+         InfusionTherapy = `Infusion Therapy`) %>%
+  distinct(Active, .keep_all = TRUE)
+
+#Combine segmentation data
+product_segmentation_comb <- product_segmentation_refor %>%
+  mutate(Dental = case_when(Dental == "X" ~ "Dental")) %>%
+  mutate(Optical = case_when(Optical == "X" ~ "Optical")) %>%
+  mutate(Surgical = case_when(Surgical == "X" ~ "Surgical")) %>%
+  mutate(Dermatology = case_when(Dermatology == "X" | SkinCare == "X" ~ "Dermatology")) %>%
+  #mutate(SkinCare = case_when(SkinCare == "X" ~ "SkinCare")) %>%
+  mutate(PlasticSurgery = case_when(PlasticSurgery == "X" | FacialPlasticSurgery == "X" ~ "PlasticSurgery")) %>%
+  #mutate(FacialPlasticSurgery = case_when(FacialPlasticSurgery == "X" ~ "FacialPlasticSurgery")) %>%
+  mutate(Nutraceuticals = case_when(Nutraceuticals == "X" ~ "Nutraceuticals")) %>%
+  mutate(InfusionTherapy = case_when(InfusionTherapy == "X" ~ "InfusionTherapy")) %>%
+  mutate(Other = case_when(Other == "X" ~ "Other")) %>%
+  select(-SkinCare, -FacialPlasticSurgery) %>%
+  unite("Segmentation", Dental:Other, sep = ", ", na.rm = TRUE) %>%
+  mutate_all(list(~na_if(.,"")))
+
+##Clean & Format Raw Product Data raw_product_data
+
+#Reformat
+raw_product_list_for <- raw_product_list %>%
+  select(-X1, -`Active Ingredients Info`, -`Package Description`, -`NDC Package Code`) %>%
+  separate(`Estab. Name`, into = c("Facility", "UID"), sep = "\\(") %>%
+  separate(`Report Year`, into = c("Year", "Period"), sep = "\\-") %>%
+  rename(Active = `Active Ingredients`)
+
+raw_product_list_for$UID <- gsub("\\)", "", as.character(raw_product_list_for$UID))
+
+# ram <- raw_product_list_for %>%
+#   filter(Facility == "RAM Pharma, Inc.")
+# 
+# View(ram)
+##Combine Datasets
+
+#Combine Product List and Segmentation
+product_list_segmented <- raw_product_list_for %>%
+  left_join(product_segmentation_comb, by = "Active")
+
+# ram <- product_list_segmented %>%
+#   filter(Facility == "RAM Pharma, Inc.")
+# 
+# View(ram)
+
+#Combine Segmented Product List and Competitor Data
+
+product_list_competitors <- product_list_segmented %>%
+  # mutate(DirectCompetitor = case_when(Facility %in% DirectCompetitors ~ "Y")) %>%
+  mutate(BrandName = case_when(Active == "Bevacizumab" ~ "Avastin",
+                               Active == "Cyanocobalamin" ~ "Methylcobalamin",
+                               Active == "Methylcobalamin" ~ "Methylcobalamin",
+                               Active == "Procaine Hydrochloride" ~ "Procaine",
+                               Active == "Aflibercept" ~ "Eylea",
+                               Active == "Lidocaine Hydrochloride; Prilocaine Hydrochloride; Tetracaine Hydrochloride; Phenylephrine Hydrochloride" ~ "TAP Gel",
+                               Active == "Tetracaine; Phenylephrine; Prilocaine; Lidocaine" ~ "TAP Gel",
+                               Active == "Prilocaine; Lidocaine; Tetracaine; Phenylephrine" ~ "TAP Gel",
+                               Active == "Lidocaine; Prilocaine Hydrochloride; Tetracaine Hydrochloride; Phenylephrine" ~ "TAP Gel",
+                               Active == "Lidocaine Hydrochloride; Epinephrine Bitartrate; Tetracaine Hydrochloride" ~ "LET Gel",
+                               Active == "Lidocaine Hydrochloride; Tetracaine Hydrochloride; Epinephrine Bitartrate" ~ "LET Gel",
+                               Active == "Tetracaine Hydrochloride; Epinephrine Bitartrate; Lidocaine Hydrochloride" ~ "LET Gel",
+                               Active == "Epinephrine; Lidocaine Hydrochloride; Tetracaine Hydrochloride" ~ "LET Gel",
+                               Active == "Lidocaine; Tetracaine" ~ "LT Oint",
+                               Active == "Tetracaine; Lidocaine" ~ "LT Oint",
+                               Active == "Lidocaine Hydrochloride; Tetracaine Hydrochloride" ~ "LT Oint",
+                               Active == "Tetracaine; Benzocaine; Lidocaine" ~ "BLT Cream",
+                               Active == "Lidocaine; Tetracaine; Benzocaine" ~ "BLT Cream",
+                               Active == "Lidocaine; Benzocaine; Tetracaine" ~ "BLT Cream",
+                               Active == "Tetracaine; Lidocaine; Benzocaine" ~ "BLT Cream",
+                               Active == "Benzocaine; Tetracaine; Lidocaine" ~ "BLT Cream",
+                               Active == "Lidocaine; Tetracaine; Benzocaine" ~ "BLT Cream",
+                               Active == "Lidocaine; Prilocaine; Tetracaine" ~ "Profound",
+                               Active == "Dexpanthenol" ~ "Dexpanthenol"
+  ))
+
+# cp_actives <- c("Bevacizumab", "Cyanocobalamin", "Methylcobalamin", "Procaine Hydrochloride", "Aflibercept", 
+#                 "Lidocaine Hydrochloride; Prilocaine Hydrochloride; Tetracaine Hydrochloride; Phenylephrine Hydrochloride",
+#                 "Tetracaine; Phenylephrine; Prilocaine; Lidocaine", "Prilocaine; Lidocaine; Tetracaine; Phenylephrine",
+#                 "Lidocaine; Prilocaine Hydrochloride; Tetracaine Hydrochloride; Phenylephrine", "Lidocaine Hydrochloride; Epinephrine Bitartrate; Tetracaine Hydrochloride", "Tetracaine Hydrochloride; Epinephrine Bitartrate; Lidocaine Hydrochloride", "Epinephrine; Lidocaine Hydrochloride; Tetracaine Hydrochloride", "Lidocaine; Tetracaine", "Tetracaine; Lidocaine", "Lidocaine Hydrochloride; Tetracaine Hydrochloride", "Tetracaine; Benzocaine; Lidocaine", "Lidocaine; Tetracaine; Benzocaine", "Lidocaine; Benzocaine; Tetracaine", "Tetracaine; Lidocaine; Benzocaine", "Benzocaine; Tetracaine; Lidocaine", "Lidocaine; Tetracaine; Benzocaine", "Lidocaine; Prilocaine; Tetracaine", "Dexpanthenol")
+
+product_list <- product_list_competitors %>%
+  left_join(facility_info, by = "Facility")
+
+product_list_graphics <- product_list
+
+# View(product_list_graphics)
+# 
+# ram <- product_list_graphics %>%
+#   filter(Facility == "RAM Pharma, Inc.")
+
+products_in_each <- product_list_graphics %>%
+  select(Active, Segmentation, Facility) %>%
+  mutate(UID = row_number())
+
+modify_blt <- products_in_each %>%
+  filter(grepl("Tetracaine", Active) & grepl("Benzocaine", Active) & grepl("Lidocaine", Active)) %>%
+  mutate(Active = "Lidocaine; Benzocaine; Tetracaine") %>%
+  mutate(Segmentation = "Dental, Surgical, Dermatology, PlasticSurgery")
+
+products_in_each <- products_in_each %>%
+  filter(!UID %in% modify_blt$UID) #%>%
+  #bind_rows(modify_blt)
+
+## Lidocaine Epi
+modify_lidoepi <- products_in_each %>%
+  filter(grepl("Epinephrine", Active) & grepl("Lidocaine", Active) != grepl("Tetracaine", Active)) %>%
+  mutate(Active = "Lidocaine; Epinephrine") %>%
+  mutate(Segmentation = "Dental, Optical, Dermatology")
+
+products_in_each <- products_in_each %>%
+  filter(!UID %in% modify_lidoepi$UID) #%>%
+  #bind_rows(modify_lidoepi)
+
+## Lido, Epi, Tetra
+modify_lidoepitetra  <- products_in_each %>%
+  filter(grepl("Epinephrine", Active) & grepl("Lidocaine", Active) & grepl("Tetracaine", Active)) %>%
+  mutate(Active = "Dental, Optical, Dermatology") %>%
+  mutate(Segmentation = "Dental, Optical, Dermatology")
+
+products_in_each <- products_in_each %>%
+  filter(!UID %in% modify_lidoepitetra$UID) #%>%
+  #bind_rows(modify_lidoepitetra)
+
+## Racepinephrine
+modify_rac  <- products_in_each %>%
+  filter(grepl("Racepinephrine", Active) & grepl("Lidocaine", Active) & grepl("Tetracaine", Active)) %>%
+  mutate(Active = "Tetracaine Hydrochloride; Racepinephrine Hydrochloride; Lidocaine Hydrochloride") %>%
+  mutate(Segmentation = "Dental, PlasticSurgery")
+
+products_in_each <- products_in_each %>%
+  filter(!UID %in% modify_rac$UID) #%>%
+  #bind_rows(modify_rac)
+
+## Lido, Prilo, Tetra
+modify_lidoprilotetra <- products_in_each %>%
+  filter(grepl("Prilocaine", Active) & grepl("Lidocaine", Active) & grepl("Tetracaine", Active)) %>%
+  mutate(Active = "Lidocaine; Prilocaine; Tetracaine") %>%
+  mutate(Segmentation = "Dental, PlasticSurgery")
+
+products_in_each <- products_in_each %>%
+  filter(!UID %in% modify_lidoprilotetra$UID) #%>%
+  #bind_rows(modify_lidoprilotetra)
+
+## Lido, Prilo, Tetra, Phen
+modify_lidophen <- products_in_each%>%
+  filter(grepl("Prilocaine", Active) & grepl("Lidocaine", Active) &
+           grepl("Tetracaine", Active) & grepl("Phenylephrine", Active)) %>%
+  mutate(Active = "Lidocaine; Prilocaine; Tetracaine; Phenylephrine") %>%
+  mutate(Segmentation = "Dental, Surgical, PlasticSurgery")
+
+products_in_each <- products_in_each %>%
+  filter(!UID %in% modify_lidophen$UID) #%>%
+  #bind_rows(modify_lidophen)
+
+## Lido, Bupi
+modify_lidobupi <- products_in_each %>%
+  filter(grepl("Bupivacaine", Active) & grepl("Lidocaine", Active)) %>%
+  mutate(Active = "Lidocaine; Bupivacaine") %>%
+  mutate(Segmentation = "Dental, Optical, Surgical, Dermatology, PlasticSurgery, Other")
+
+products_in_each <- products_in_each %>%
+  filter(!UID %in% modify_lidobupi$UID) #%>%
+  #bind_rows(modify_lidobupi)
+
+modify_asparticglut <- products_in_each %>%
+  filter(Active == "Aspartic Acid; Glutamic Acid" | Active == "Glutamic Acid; Aspartic Acid") %>%
+  mutate(Active = "Aspartic Acid; Glutamic Acid") %>%
+  mutate(Segmentation = "Dental, Optical, Surgical, Dermatology, PlasticSurgery, Nutraceuticals, InfusionTherapy, Other")
+
+products_in_each <- products_in_each %>%
+  filter(!UID %in% modify_asparticglut$UID) #%>%
+  #bind_rows(modify_asparticglut)
+
+## Lidocaine, Tetracaine
+modify_lidotetrasol <- products_in_each %>%
+  filter(grepl("Tetracaine", Active) & grepl("Lidocaine", Active)) %>%
+  mutate(Active = "Tetracaine; Lidocaine") %>%
+  mutate(Segmentation = "Dental, Optical, Dermatology")
+
+products_in_each <- products_in_each %>%
+  filter(!UID %in% modify_lidotetrasol$UID) #%>%
+  #bind_rows(modify_lidotetrasol)
+
+# ## Lidocaine, Tetracaine
+# modify_meth <- products_in_each %>%
+#   filter(Active == "Methylcobalamin" | Active == "Cyanocobalamin") %>%
+#   mutate(Active = "Methylcobalamin") %>%
+#   mutate(Segmentation = "Nutraceuticals")
+# 
+# products_in_each <- products_in_each %>%
+#   filter(!UID %in% modify_meth$UID) #%>%
+#   #bind_rows(modify_meth)
+
+## Fent
+modify_fent <- products_in_each %>%
+  filter(grepl("Fentanyl Citrate", Active) & grepl("Ropivacaine Hydrochloride", Active)) %>%
+  mutate(Active = "Fentanyl Citrate; Ropivacaine Hydrochloride") %>%
+  mutate(Segmentation = "Surgical, PlasticSurgery")
+
+products_in_each <- products_in_each %>%
+  filter(!UID %in% modify_fent$UID) #%>%
+  #bind_rows(modify_fent)
+
+modify_phenlido <- products_in_each %>%
+  filter(grepl("Lidocaine Hydrochloride", Active) & grepl("Phenylephrine Hydrochloride", Active)) %>%
+  mutate(Active = "Lidocaine Hydrochloride; Phenylephrine Hydrochloride")  %>%
+  mutate(Segmentation = "Dental, PlasticSurgery")
+
+products_in_each <- products_in_each %>%
+  filter(!UID %in% modify_phenlido$UID) #%>%
+  #bind_rows(modify_phenlido)
+
+modify_troicamide <- products_in_each %>%
+  filter(grepl("Phenylephrine Hydrochloride", Active) & grepl("Tropicamide", Active)) %>%
+  mutate(Active = "Phenylephrine Hydrochloride; Tropicamide") %>%
+  mutate(Segmentation = "Optical")
+
+products_in_each <- products_in_each %>%
+  filter(!UID %in% modify_troicamide$UID) #%>%
+  #bind_rows(modify_troicamide)
+
+## Racepinephrine
+modify_tropphencyc <- products_in_each %>%
+  filter(grepl("Tropicamide", Active) & grepl("Phenylephrine Hydrochloride", Active) & grepl("Cyclopentolate Hydrochloride", Active)) %>%
+  mutate(Active = "Tropicamide; Phenylephrine Hydrochloride; Cyclopentolate Hydrochloride") %>%
+  mutate(Segmentation = "Surgical, PlasticSurgery, InfusionTherapy")
+
+products_in_each <- products_in_each %>%
+  filter(!UID %in% modify_tropphencyc$UID) #%>%
+  #bind_rows(modify_tropphencyc)
+
+## Racepinephrine
+modify_lidocainehydro <- products_in_each %>%
+  filter(Active == "Lidocaine Hydrochloride" | Active == "Lidocaine") %>%
+  mutate(Active = "Lidocaine") %>%
+  mutate(Segmentation = "Dental, Optical, Surgical, Dermatology, PlasticSurgery")
+
+products_in_each <- products_in_each %>%
+  filter(!UID %in% modify_lidocainehydro$UID) #%>%
+  #bind_rows(modify_tropphencyc)
+
+## Racepinephrine
+modify_vancomycin <- products_in_each %>%
+  filter(Active == "Vancomycin" | Active == "Vancomycin Hydrochloride") %>%
+  mutate(Active = "Vancomycin Hydrochloride") %>%
+  mutate(Segmentation = "Dental, Optical, Surgical, PlasticSurgery")
+
+products_in_each <- products_in_each %>%
+  filter(!UID %in% modify_vancomycin$UID) #%>%
+  #bind_rows(modify_tropphencyc)
+
+# Hydrocortisone; Tretinoin; Hydroquinone
+modify_hydrotret<- products_in_each %>%
+  filter(grepl("Hydrocortisone", Active) & grepl("Tretinoin", Active) & grepl("Hydroquinone", Active)) #%>%
+  # mutate(Active = "Hydrocortisone; Tretinoin; Hydroquinone") %>%
+  # mutate(Segmentation = "Dermatology")
+
+products_in_each <- products_in_each %>%
+  filter(!UID %in% modify_hydrotret$UID) #%>%
+  #bind_rows(modify_lidoprilotetra)
+
+## Finasteride; Minoxidil
+modify_finestride <- products_in_each %>%
+  filter(grepl("Finasteride", Active) & grepl("Minoxidil", Active)) %>%
+  mutate(Active = "Finasteride; Minoxidil") %>%
+  mutate(Segmentation = "Dermatology")
+
+products_in_each <- products_in_each %>%
+  filter(!UID %in% modify_finestride$UID) #%>%
+  #bind_rows(modify_tropphencyc)
+
+
+bound_rename <- bind_rows(modify_blt, modify_lidoepi, modify_lidoepitetra, modify_rac,
+                          modify_lidoprilotetra, modify_lidophen, modify_lidobupi,
+                          modify_asparticglut, modify_lidotetrasol, modify_fent,
+                          modify_phenlido, modify_troicamide, modify_tropphencyc,
+                          modify_meth, modify_lidocainehydro, modify_vancomycin,
+                          modify_hydrotret, modify_finestride)
+
+products_in_each<- products_in_each %>%
+  bind_rows(bound_rename)
+
+# ram <- products_in_each %>%
+#   filter(Facility == "RAM Pharma, Inc.")
+## Leave modification
+
+products_in_each <- products_in_each %>%
+  filter(Segmentation != "NA")
+
+products_other <- products_in_each %>%
+  filter(grepl("Other", Segmentation)) %>%
+  mutate(Catagory = "Other")
+
+products_nutra <- products_in_each %>%
+  filter(grepl("Nutraceuticals", Segmentation)) %>%
+  mutate(Catagory = "Nutraceuticals")
+
+products_infusion <- products_in_each %>%
+  filter(grepl("InfusionTherapy", Segmentation)) %>%
+  mutate(Catagory = "InfusionTherapy")
+
+products_derma <- products_in_each %>%
+  filter(grepl("Dermatology", Segmentation)) %>%
+  mutate(Catagory = "Dermatology")
+
+products_surgical <- products_in_each %>%
+  filter(grepl("Surgical", Segmentation)) %>%
+  mutate(Catagory = "Surgical")
+
+products_plastic <- products_in_each %>%
+  filter(grepl("PlasticSurgery", Segmentation)) %>%
+  mutate(Catagory = "PlasticSurgery")
+
+products_dental <- products_in_each %>%
+  filter(grepl("Dental", Segmentation)) %>%
+  mutate(Catagory = "Dental")
+
+products_optical <- products_in_each %>%
+  filter(grepl("Optical", Segmentation)) %>%
+  mutate(Catagory = "Optical")
+
+products_single_seg <- bind_rows(products_dental, products_other, products_derma,
+                                 products_nutra, products_infusion, products_surgical,
+                                 products_plastic, products_optical) %>%
+  rename("Segment" = "Catagory") %>%
+  select(-Segmentation, -UID)
+
+  ## This works
+  group_segment_facility <- products_single_seg %>%
+    group_by(Segment, Facility) %>%
+    distinct(Active, .keep_all = TRUE) %>%
+    mutate(FacilitySegmentCount = n()) %>%
+    ungroup() %>%
+    select(Facility, Segment, FacilitySegmentCount)
+  
+  # ram <- product_list %>%
+  #   filter(Facility == "RAM Pharma, Inc.")
+  
+  ## This works
+  group_active <- products_single_seg %>%
+    group_by(Facility) %>%
+    distinct(Active, .keep_all = TRUE) %>% 
+    ungroup() %>%
+    group_by(Active) %>%
+    mutate(ActiveCount = n()) %>%
+    ungroup() %>%
+    select(Active, Segment, Facility, ActiveCount)
+  
+  ## Look at this one additon? 
+  group_facility <- group_segment_facility  %>%
+    group_by(Facility) %>%
+    distinct(Segment, .keep_all = TRUE) %>%
+    mutate(ProductCount = sum(FacilitySegmentCount)) %>%
+    ungroup() %>%
+    select(Facility, ProductCount)
+  
+  ## Look at this one addition?
+  group_segment <- group_segment_facility %>%
+    group_by(Segment) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    mutate(SegmentCount = sum(FacilitySegmentCount)) %>%
+    ungroup() %>%
+    select(Segment, SegmentCount)
+  
+  # glimpse(group_active)
+  
+  # group_active <- products_single_seg %>%
+  #   group_by(Active) %>%
+  #   mutate(ActiveCount = n()) %>%
+  #   ungroup() %>%
+  #   select(Active, ActiveCount)
+  
+  joined_segments_1 <- products_single_seg %>%
+    left_join(group_facility, by = "Facility") %>%
+    distinct_all()
+  
+  joined_segments_2 <- joined_segments_1 %>%
+    left_join(group_segment, by = "Segment") %>%
+    distinct_all()
+  
+  joined_segments_3 <- joined_segments_2 %>%
+    left_join(group_segment_facility, by = c("Facility", "Segment")) %>%
+    distinct_all()
+  
+  joined_segments_4 <- joined_segments_3 %>%
+    left_join(group_active, by = c("Active")) %>%
+    distinct_all()
+  
+  ## List of Products Produced by RAM/CP
+  
+  ram_product_list <- product_list %>%
+    filter(Facility == "RAM Pharma, Inc.") %>%
+    mutate(ProducedByCP = "Y") %>%
+    distinct(Active, .keep_all = TRUE) %>%
+    select(Active, ProducedByCP)
+  
+  cp_actives <- c("Methylcobalamin", "Dexpanthenol", "Lidocaine; Benzocaine; Tetracaine", 
+                  "Tetracaine; Lidocaine", "Bevacizumab", "Procaine Hydrochloride", 
+                  "Cyanocobalamin", "Aflibercept", "Lidocaine; Epinephrine; Tetracaine",
+                  "Lidocaine; Prilocaine; Tetracaine; Phenylephrine", "Lidocaine; Prilocaine; Tetracaine")
+  
+  cp_product_list <- product_list %>%
+    filter(Active %in% cp_actives) %>%
+    mutate(ProducedByCP = "Y") %>%
+    distinct(Active, .keep_all = TRUE) %>%
+    select(Active, ProducedByCP)
+  
+  cp_products <- bind_rows(cp_product_list, ram_product_list)
+  
+  facility_product_count <- joined_segments_4 %>%
+    left_join(cp_products, by = "Active") %>%
+    select(Active, Facility.x, Segment.x, ActiveCount, ProductCount, FacilitySegmentCount,
+           SegmentCount, ProducedByCP) %>%
+    rename(Segment = Segment.x, Facility = Facility.x) %>%
+    distinct_all() %>%
+    left_join(facility_info, by = "Facility")
+  
+  #View(facility_product_count)
+  write.csv(facility_product_count, "~/Desktop/Facility Product Count.csv")
+  
+  #Facility_Product_Count <- read_csv("~/Desktop/Facility Product Count.csv")
+
+```
+
+```{r modify_data, include=FALSE, echo = FALSE, message=FALSE, cache = FALSE}
+
+# Add new product counts to product_list from Facility Product Count
+# Calculate # competing products for each
+# 
+
+# For Product List Graphics
+
+product_count_p_l <- facility_product_count %>%
+  group_by(Facility) %>%
+  distinct(Active) %>%
+  mutate(ProductCount = n()) %>%
+  select(Facility, ProductCount) %>%
+  distinct(Facility, .keep_all = TRUE)
+
+number_competing <- facility_product_count %>%
+  select(Active, Facility, ProducedByCP) %>%
+  group_by(Facility) %>%
+  distinct(Active, .keep_all = TRUE) %>%
+  filter(ProducedByCP == "Y") %>%
+  mutate(Competing = n()) %>%
+  distinct(Facility, .keep_all = TRUE) %>%
+  select(Facility, Competing)
+
+product_list_graphics <- product_list_graphics %>%
+  left_join(product_count_p_l, by = "Facility")
+# 
+product_list_graphics <- product_list_graphics %>%
+  left_join(number_competing, by = "Facility")
+# 
+# # Add $ and employee info from facility_info
+# 
+# facility_to_add <- facility_info %>%
+#   select(Facility, Services, EstSales, EstFacilitySize)
+# 
+# product_list_graphics <- product_list_graphics %>%
+#   left_join(facility_to_add, by = "Facility") #%>%
+#   #mutate(EstSales = paste("$", format(round(EstSales, 2L), nsmall = 2L)))
+# 
+# # Rebind FacilitySqFt and Employee #'s
+# 
+# sqft_employee <- facility_info %>%
+#   select(Facility, FacilitySqFt, Employees)
+# 
+# product_list_graphics <- product_list_graphics %>%
+#   select(-FacilitySqFt, -Employees) %>%
+#   left_join(sqft_employee, by = "Facility")
+
+# product_list_graphics <- product_list_graphics %>%
+#     left_join(facility_info, by = "Facility") 
+
+```
+
+```{r custom_functions, include=FALSE, echo = FALSE, message=FALSE, cache = FALSE}
+
+#Functions
+
+#Reorder size
+
+reorder_size <- function(x) {
+  factor(x, levels = names(sort(table(x), decreasing = TRUE)))
+}
+
+intersect_segment_active <- function(A,B,C){
+  
+  # products_in_each <- product_list_graphics %>%
+  #   select(Active, Segmentation, Facility)
+  # 
+  # products_in_each <- products_in_each %>%
+  #   filter(Segmentation != "NA")
+  # 
+  # products_other <- products_in_each %>%
+  #   filter(grepl("Other", Segmentation)) %>%
+  #   mutate(Catagory = "Other")
+  # 
+  # products_nutra <- products_in_each %>%
+  #   filter(grepl("Nutraceuticals", Segmentation)) %>%
+  #   mutate(Catagory = "Nutraceuticals")
+  # 
+  # products_infusion <- products_in_each %>%
+  #   filter(grepl("InfusionTherapy", Segmentation)) %>%
+  #   mutate(Catagory = "InfusionTherapy")
+  # 
+  # products_derma <- products_in_each %>%
+  #   filter(grepl("Dermatology", Segmentation)) %>%
+  #   mutate(Catagory = "Dermatology")
+  # 
+  # products_surgical <- products_in_each %>%
+  #   filter(grepl("Surgical", Segmentation)) %>%
+  #   mutate(Catagory = "Surgical")
+  # 
+  # products_plastic <- products_in_each %>%
+  #   filter(grepl("PlasticSurgery", Segmentation)) %>%
+  #   mutate(Catagory = "PlasticSurgery")
+  # 
+  # products_dental <- products_in_each %>%
+  #   filter(grepl("Dental", Segmentation)) %>%
+  #   mutate(Catagory = "Dental")
+  # 
+  # products_optical <- products_in_each %>%
+  #   filter(grepl("Optical", Segmentation)) %>%
+  #   mutate(Catagory = "Optical")
+  # 
+  # products_single_seg <- bind_rows(products_dental, products_other, products_derma,
+  #                                  products_nutra, products_infusion, products_surgical,
+  #                                  products_plastic, products_optical) %>%
+  #   rename("Segment" = "Catagory") %>%
+  #   select(-Segmentation)
+
+  
+  ## This works
+  group_segment_facility <- products_single_seg %>%
+    group_by(Segment, Facility) %>%
+    distinct(Active, .keep_all = TRUE) %>%
+    mutate(FacilitySegmentCount = n()) %>%
+    ungroup() %>%
+    select(Facility, Segment, FacilitySegmentCount)
+  
+  # ram <- product_list %>%
+  #   filter(Facility == "RAM Pharma, Inc.")
+  
+  ## This works
+  group_active <- products_single_seg %>%
+    group_by(Facility) %>%
+    distinct(Active, .keep_all = TRUE) %>% 
+    ungroup() %>%
+    group_by(Active) %>%
+    mutate(ActiveCount = n()) %>%
+    ungroup() %>%
+    select(Active, Segment, Facility, ActiveCount)
+  
+  ## Look at this one additon? 
+  group_facility <- group_segment_facility  %>%
+    group_by(Facility) %>%
+    distinct(Segment, .keep_all = TRUE) %>%
+    mutate(ProductCount = sum(FacilitySegmentCount)) %>%
+    ungroup() %>%
+    select(Facility, ProductCount)
+  
+  ## Look at this one addition?
+  group_segment <- group_segment_facility %>%
+    group_by(Segment) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    mutate(SegmentCount = sum(FacilitySegmentCount)) %>%
+    ungroup() %>%
+    select(Segment, SegmentCount)
+  
+  # glimpse(group_active)
+  
+  # group_active <- products_single_seg %>%
+  #   group_by(Active) %>%
+  #   mutate(ActiveCount = n()) %>%
+  #   ungroup() %>%
+  #   select(Active, ActiveCount)
+  
+  joined_segments_1 <- products_single_seg %>%
+    left_join(group_facility, by = "Facility") %>%
+    distinct_all()
+  
+  joined_segments_2 <- joined_segments_1 %>%
+    left_join(group_segment, by = "Segment") %>%
+    distinct_all()
+  
+  joined_segments_3 <- joined_segments_2 %>%
+    left_join(group_segment_facility, by = c("Facility", "Segment")) %>%
+    distinct_all()
+  
+  joined_segments_4 <- joined_segments_3 %>%
+    left_join(group_active, by = c("Active")) %>%
+    distinct_all()
+  
+  ## List of Products Produced by RAM/CP
+  
+  ram_product_list <- product_list %>%
+    filter(Facility == "RAM Pharma, Inc.") %>%
+    mutate(ProducedByCP = "Y") %>%
+    distinct(Active, .keep_all = TRUE) %>%
+    select(Active, ProducedByCP)
+  
+  cp_actives <- c("Methylcobalamin", "Dexpanthenol", "Lidocaine; Benzocaine; Tetracaine", 
+                  "Tetracaine; Lidocaine", "Bevacizumab", "Procaine Hydrochloride", 
+                  "Cyanocobalamin", "Aflibercept", "Lidocaine; Epinephrine; Tetracaine",
+                  "Lidocaine; Prilocaine; Tetracaine; Phenylephrine", "Lidocaine; Prilocaine; Tetracaine")
+  
+  cp_product_list <- product_list %>%
+    filter(Active %in% cp_actives) %>%
+    mutate(ProducedByCP = "Y") %>%
+    distinct(Active, .keep_all = TRUE) %>%
+    select(Active, ProducedByCP)
+  
+  cp_products <- bind_rows(cp_product_list, ram_product_list)
+  
+  joined_segments_5 <- joined_segments_4 %>%
+    left_join(cp_products, by = "Active") %>%
+    select(Active, Facility.x, Segment.x, ActiveCount, ProductCount, FacilitySegmentCount,
+           SegmentCount, ProducedByCP) %>%
+    rename(Segment = Segment.x, Facility = Facility.x) %>%
+    distinct_all()
+  
+  #write.csv(joined_segments_5, "~/Desktop/Facility Product Count.csv")
+  
+  #Facility_Product_Count <- read_csv("~/Desktop/Facility Product Count.csv")
+  
+  p_l <- joined_segments_5  %>%
+    filter(Segment == C)
+  
+  A_products <- p_l %>%
+    select(Facility, Active) %>%
+    filter(Facility == A) %>%
+    distinct(Active, .keep_all = TRUE)
+  
+  B_products <- p_l %>%
+    select(Facility, Active) %>%
+    filter(Facility == B) %>%
+    distinct(Active, .keep_all = TRUE)
+  
+  # Produced by both
+  both    <-  as.data.frame(intersect(A_products$Active, B_products$Active)) %>%
+    mutate(Facility = "Both") %>%
+    rename(Active = `intersect(A_products$Active, B_products$Active)`)
+  
+  # In A not in B
+  inA    <-  as.data.frame(setdiff(A_products$Active, B_products$Active)) %>%
+    mutate(Facility = A) %>%
+    rename(Active = `setdiff(A_products$Active, B_products$Active)`) 
+  
+  # In B not in A
+  inB    <-  as.data.frame(setdiff(B_products$Active, A_products$Active)) %>%
+    mutate(Facility = B) %>%
+    rename(Active = `setdiff(B_products$Active, A_products$Active)`) 
+  
+  combined <- bind_rows(both, inA, inB) %>%
+    left_join(p_l, by = c("Facility", "Active")) %>%
+    mutate(Segment = C) %>%
+    group_by(Facility) %>%
+    distinct(Active, .keep_all = TRUE) %>%
+    select(-ProductCount) %>%
+    knitr::kable(caption = paste(C))
+  # gt() %>%
+  # tab_header(
+  #   title = paste(A, B, C),
+  #   subtitle = md("Product Intersections")
+  # ) %>%
+  # tab_options(
+  #   table.width = pct(100)
+  # ) %>%
+  # data_color(Segment, colors = c("lightgrey"))
+}
+
+segment_graph <- function(A){
+  # product_list %>%
+  #   filter(Segmentation != "NA") %>%
+  #   group_by(Facility) %>%
+  #   mutate(Dental = sum(str_count(Segmentation, "Dental"))) %>%
+  #   mutate(Surgical = sum(str_count(Segmentation, "Surgical"))) %>%
+  #   mutate(InfusionTherapy = sum(str_count(Segmentation, "InfusionTherapy"))) %>%
+  #   mutate(Nutraceuticals = sum(str_count(Segmentation, "Nutraceuticals"))) %>%
+  #   mutate(Optical = sum(str_count(Segmentation, "Optical"))) %>%
+  #   mutate(Dermatology = sum(str_count(Segmentation, "Dermatology"))) %>%
+  #   #mutate(SkinCare = sum(str_count(Segmentation, "SkinCare"))) %>%
+  #   #mutate(FacialPlasticSurgery = sum(str_count(Segmentation, "FacialPlasticSurgery"))) %>%
+  #   mutate(PlasticSurgery = sum(str_count(Segmentation, "PlasticSurgery"))) %>%
+  #   mutate(Other = sum(str_count(Segmentation, "Other"))) %>%
+  #   ungroup() %>%
+  #   filter(Facility == A) %>%
+  #   select(Facility, Dental, Surgical, InfusionTherapy, Nutraceuticals, Optical,
+  #          Dermatology, PlasticSurgery, Other) %>%
+  #   gather("Segment", "Instances") %>%
+  #   distinct(Segment, .keep_all = TRUE) %>%
+  #   slice(2:11) %>%
+  #   mutate(Instances = as.numeric(Instances)) %>%
+  #   arrange(Instances) %>%
+  #   ungroup() %>%
+  #   ggplot(aes(x = reorder(Segment, -Instances), y = Instances)) +
+  #   geom_bar(stat = "identity") +
+  #   geom_text(aes(label = Instances), vjust = -0.5) +
+  #   theme_classic() +
+  #   theme(axis.text.x = element_text(angle = 45, hjust = 1),
+  #         axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+  #   labs(title = paste(A, "Segmentation", sep = " " ), x = element_blank(), 
+  #        y = "# of Products in Segment")
+  # 
+  # A <- "AnazaoHealth Corporation"
+  
+  df <- tibble(
+  Segment = c("Surgical", "PlasticSurgery", "InfusionTherapy", "Optical",
+              "Other", "Dermatology", "Dental", "Nutraceuticals")
+)
+  
+  facility <- facility_product_count %>%
+    filter(Facility == A) %>%
+    distinct(Segment, .keep_all = TRUE) %>%
+    select(Segment, FacilitySegmentCount)
+  
+  df <- df %>%
+    left_join(facility, by = "Segment")
+  
+  ggplot(df, aes(x = reorder(Segment, -FacilitySegmentCount), y = FacilitySegmentCount)) +
+    geom_bar(stat = "identity") +
+    geom_text(aes(label = FacilitySegmentCount), vjust = -0.5) +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+    labs(title = paste(A, "Segmentation", sep = " " ), x = element_blank(), 
+         y = "# of Products in Segment")
+  
+}
+
+
+```
+
+```{r product_info_setup, include=FALSE, echo = FALSE, message=FALSE, cache = FALSE}
+
+# Product Information Setup
+
+# all_states <- map_data("state")
+# 
+# avastin_data <- count_brand_state("Avastin") %>%
+#   distinct(state, .keep_all = TRUE) %>%
+#   select(BrandName, count, state) %>%
+#   left_join(all_states, by = c("state" = "region")) %>%
+#   mutate(count = as.numeric(count))
+# 
+# blt_data <- count_brand_state("BLT Cream") %>%
+#   distinct(state, .keep_all = TRUE) %>%
+#   select(BrandName, count, state) %>%
+#   left_join(all_states, by = c("state" = "region")) %>%
+#   mutate(count = as.numeric(count))
+# 
+# dexpan_data <- count_brand_state("Dexpanthenol") %>%
+#   distinct(state, .keep_all = TRUE) %>%
+#   select(BrandName, count, state) %>%
+#   left_join(all_states, by = c("state" = "region")) %>%
+#   mutate(count = as.numeric(count))
+# 
+# meth_data <- count_brand_state("Methylcobalamin") %>%
+#   distinct(state, .keep_all = TRUE) %>%
+#   select(BrandName, count, state) %>%
+#   left_join(all_states, by = c("state" = "region")) %>%
+#   mutate(count = as.numeric(count))
+# 
+# lt_data <- count_brand_state("LT Oint") %>%
+#   distinct(state, .keep_all = TRUE) %>%
+#   select(BrandName, count, state) %>%
+#   left_join(all_states, by = c("state" = "region")) %>%
+#   mutate(count = as.numeric(count))
+# 
+# procaine_data <- count_brand_state("Procaine") %>%
+#   distinct(state, .keep_all = TRUE) %>%
+#   select(BrandName, count, state) %>%
+#   left_join(all_states, by = c("state" = "region")) %>%
+#   mutate(count = as.numeric(count))
+# 
+# profound_data <- count_brand_state("Profound") %>%
+#   distinct(state, .keep_all = TRUE) %>%
+#   select(BrandName, count, state) %>%
+#   left_join(all_states, by = c("state" = "region")) %>%
+#   mutate(count = as.numeric(count))
+# 
+# let_data <- count_brand_state("LET Gel") %>%
+#   distinct(state, .keep_all = TRUE) %>%
+#   select(BrandName, count, state) %>%
+#   left_join(all_states, by = c("state" = "region")) %>%
+#   mutate(count = as.numeric(count))
+# 
+# eylea_data <- count_brand_state("Eylea") %>%
+#   distinct(state, .keep_all = TRUE) %>%
+#   select(BrandName, count, state) %>%
+#   left_join(all_states, by = c("state" = "region")) %>%
+#   mutate(count = as.numeric(count))
+# 
+# tap_data <- count_brand_state("TAP Gel") %>%
+#   distinct(state, .keep_all = TRUE) %>%
+#   select(BrandName, count, state) %>%
+#   left_join(all_states, by = c("state" = "region")) %>%
+#   mutate(count = as.numeric(count))
+# 
+# state.short <- bind_cols(state.abb, state.center) 
+# 
+# state.short <- state.short %>%
+#   rename(abb = ...1) %>%
+#   filter(!abb %in% c("AK", "HI"))
+# 
+# map_palette <- c("grey", "lightskyblue1", "lightskyblue", "skyblue3", "skyblue4")
+
+# %>%
+#   rename(City = City.x, InitialRegistration = InitialRegistration.x,
+#          FacilitySqFt = FacilitySqFt.x, Employees = Employees.x,
+#          Services = Services.x, EstSales = EstSales.x, EstFacilitySize = EstFacilitySize.x)
+
+
+```
+
+
+# Data Sources
+
+This data covers the years 2019 and 2020. 
+
+[Segmentation Data](./data/Facility Product Count.xlsx)
+
+This Excel document is focused on products and segments, it contains limited
+information on facilities, and is best used in conjunction with this report. Each 
+product will appear multiple times within this document, one time for each facility
+that produced it, and one time for each segment that it falls into. 
+
+By using the Excel filter functions of each column you can refine the data you
+are looking at to see which products are in each segment, products that are produced
+by a single facility, and what products facilities are producing. This report acts
+as a supplement to this document, presenting information from other sets of data 
+to enable product related decision making. 
+
+Column               | Description
+-------------------- | -------------
+Active               | Active Ingredient
+Facility             | Registered 503B Facility name
+Segment              | Dental, Dermatology, InfusionTherapy, Nutraceuticals, Optical, Other, PlasticSurgery, Surgical
+ActiveCount          | Number of times Active was reported as produced
+FacilitySegmentCount | Number of products Facility produces within Segment
+SegmentCount         | Number of products within Segment
+ProducedByCP         | Y/NA Has the Active ever been produced by RAM/Compound Preferred?
+
+[FDA 503B Product List](./data/Raw FDA Data.xlsx)
+
+This document contains unmodified data directly from the FDA in a useful Excel
+format. 
+
+Column                  | Description
+----------------------- | -------------
+Active Ingredients      | Active ingredients in product
+Active Ingredients Info | Concentration of Active  
+Dosage                  | Reported dosage form
+Estab. Name             | Registered 503B Facility name
+Package Description     | Description of package
+NDC Package Code        | Unique packaging identifier
+Report Year             | Year and 6 month period in which Active was produced
+
+
+[Facility Information](./data/facility_info.xlsx)
+
+The information in this document can be found summarized in this report under
+facility information summaries. The document contains information on each 503B
+facility that reported production in the years of 2019 and 2020. 
+
+Column               | Description
+-------------------- | -------------
+Facility             | Registered 503B Facility name
+UID                  | FDA Unique Identifier 
+City                 | City Facility Location
+Longitude            | Geolocation
+Latitude             | Geolocation
+InitialRegistration  | Initial registration as an FDA 503B facility
+FacilitySqFt         | Estimated facility square footage, estimates are based on Google Map imagery 
+Employees            | Dun & Bradstreet 2021 employee estimate
+Services             | Services offered by Facility
+EstSales             | Dun & Bradstreet 2021 sales estimate
+EstFacilitySize      | Facility size estimate, based on SqFt, EmployeeEst, and EstSales
+
+[Geographic Data](./data/geographic_data.xlsx)
+
+This document contains specific information about the states in which some facilities 
+can distribute compounded products. This information is mostly useful in graphic form. 
+
+Column               | Description
+-------------------- | -------------
+Facility             | Registered 503B Facility name
+Longitude            | Geolocation
+Latitude             | Geolocation
+Territory            | Facility territory, list of US states in which the facility can deliver products
+
+
+
+# Facility Information Example 
+
+## RAM Pharma, Inc.
+
+### Table 1
+
+Each 503B facility entry contains similar information. The first table contains
+information on location, registration, and some key information about facility
+size, sales estimates, and a head count estimate. 
+
+Sales and head count are derived from the Dun & Bradstreet company database, 
+unless specific information about head count was available on a facilities 
+website. Square footage was estimated based on Google Maps images. 
+
+```{r ram_facility_info_1, include = TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%"}
+
+x <- "RAM Pharma, Inc."
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable() 
+  
+  facility_table_1
+  
+```
+
+### Table 2
+
+The second table contains information including a facility size estimate, 
+product specific information, and services offered. The column Product count represents the number of unique products reported by a facility in the years 
+of 2019 and 2020. The column Competing is the number of those products that RAM/Compound Preferred has produced and reported in the past. 
+
+```{r ram_facility_info_2, include = TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%"}
+  
+x <- "RAM Pharma, Inc."
+
+  facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    mutate(Competing = "NA") %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+
+```
+
+### Segment Chart
+
+The final graph that will appear on each facility page is a segmentation bar chart. 
+This chart shows the number of products in each facilities product mix that fall
+into a particular segment. 
+
+For example, BLT Cream is categorized into two segments, Dental and PlasticSurgery.
+In the chart below, BLT Cream will be counted twice, once in Dental and once in 
+PlasticSurgery. 
+
+If we wanted to know exactly which 32 products made up the the PlasticSurgery 
+segment for RAM, we could use [Segmentation Data](./data/Facility Product Count.xlsx) Excel document. 
+
+```{r ram_facility_info_3, include = TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning=FALSE}
+# Segment Graph RAM Pharma
+
+x <- "RAM Pharma, Inc."
+
+segment_graph(x)
+
+```
+
+# Facility Information Summaries
+
+## General Summaries
+
+### Segments Bar Graph
+
+```{r segments_bar, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%"}
+
+facility_product_count %>%
+  filter(Segment != "NA") %>%
+  select(Segment, SegmentCount) %>%
+  distinct(Segment, .keep_all = TRUE) %>%
+  mutate(SegmentCount = as.numeric(SegmentCount)) %>%
+  ggplot(aes(x = reorder(Segment, -SegmentCount), y = SegmentCount)) +
+  geom_bar(stat = "identity") +
+  theme_classic() +
+    geom_text(aes(label = SegmentCount), vjust = -0.5) +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+    labs(title = "Products in Segment", x = element_blank(), 
+         y = "# of Products in Segment", 
+         subtitle = "Note that many products fall into multiple segments.")
+
+```
+
+### 503B Facilities Geographic Distribution
+
+```{r geographic_facility_info, include = TRUE, echo = FALSE, message=FALSE, cache = TRUE, warning = FALSE, out.width="100%"}
+
+#Table of Facilities
+# facility_table_1 <- product_list %>%
+#   # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+#   select(Facility, City, State, InitialRegistration) %>%
+#   distinct(Facility, .keep_all = TRUE) %>%
+#   knitr::kable()
+
+# map_table <- product_list_graphics %>%
+#   # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+#   select(Facility, City, State, InitialRegistration) %>%
+#   distinct(Facility, .keep_all = TRUE) %>%
+#     filter(!Facility %in% c("Edge Pharmacy Services LLC", "RXQ Compounding, LLC", "US Specialty Formulations LLC", "Pacifico National, Inc.  dba AmEx Pharmacy"))
+
+# API Key AIzaSyBoO-9t-v0rzLVC0AmxV3p0SOy0r9iuKAs
+# map_table <- cbind(geocode(as.character(map_table$City)), map_table)
+
+# map_table <- map_table %>%
+#   select(lon, lat, Facility)
+# 
+# product_list_graphics <- product_list_graphics %>%
+#   left_join(map_table, by = "Facility")
+
+# all_states <- map_data("state")
+# 
+# state.short <- bind_cols(state.abb, state.center) 
+# 
+# state.short <- state.short %>%
+#   rename(abb = ...1) %>%
+#   filter(!abb %in% c("AK", "HI"))
+# 
+# ggplot() +
+#   geom_polygon(data = all_states, aes(x=long, y=lat, group = group), 
+#                fill="grey", colour = "white") +
+#   geom_point(data = map_table, aes(x = lon, y = lat),
+#              color = "lightblue", size = 2.5) +
+#   geom_text(data = state.short, aes(x = x, y = y), label = state.short$abb) +
+#   # geom_label_repel(data = map_table, aes(x = lon, y = lat), 
+#   #           label = paste(map_table$Facility)) +
+#   theme_void() +
+#   labs(title = "Geographic Distribution of 503B Facilities in the United States")
+# 
+# facility_table_1 
+
+df <- facility_info
+
+g <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  showland = TRUE,
+  landcolor = toRGB("gray95"),
+  subunitcolor = toRGB("gray85"),
+  countrycolor = toRGB("gray85"),
+  countrywidth = 0.5,
+  subunitwidth = 0.5
+)
+
+fig <- plot_geo(df, lat = ~lat, lon = ~lon)
+fig <- fig %>% add_markers(
+  text = ~paste(Facility, City, State, EstFacilitySize, sep = "<br />"),
+  color =  ~EstFacilitySize, symbol = I("square"), size = I(8), 
+  hoverinfo = "text"
+)
+#fig <- fig %>% colorbar(title = "Incoming flights<br />February 2011")
+fig <- fig %>% layout(
+  title = 'Geographic Distribution of 503B Facilities (Hover for name)', geo = g
+)
+
+fig
+
+#Table of Facilities
+# facility_table_2 <- product_list %>%
+#   select(FacilitySqFt, UniqueProducts, CompetingProducts) %>%
+#   distinct(Facility, .keep_all = TRUE) %>%
+#   gt()
+# 
+# facility_table_2 
+
+```
+
+
+
+## Facilities
+
+### AnazaoHealth Corporation 
+
+```{r anazao_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "AnazaoHealth Corporation"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+
+```
+
+### ASP Cares
+
+```{r asp_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "ASP Cares"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Atlas Pharmaceuticals, LLC
+
+```{r atlas_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Atlas Pharmaceuticals, LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+
+```
+
+### Apollo Care, LLC
+
+```{r apollo_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Apollo Care, LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Athenex Pharma Solutions, LLC
+
+```{r athenex_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Athenex Pharma Solutions, LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Auro Pharmacies, Inc
+
+```{r auro_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Auro Pharmacies, Inc"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Avella of Deer Valley, Inc. #38
+
+```{r avella_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Avella of Deer Valley, Inc. #38"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Brookfield Medical Surgical Supply
+
+```{r brookfield_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Brookfield Medical Surgical Supply"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### BSO, LLC
+
+```{r bso_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "BSO, LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Complete Pharmacy and Medical Solutions
+
+```{r complete_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Complete Pharmacy and Medical Solutions"
+# x <- "Complete"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+x <- "Complete Pharmacy and Medical Solutions"
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Leiters Health
+
+```{r leiters_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Denver Solutions, LLC dba Leiters Health"
+# x <- "Leiters Health"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+
+x <- "Denver Solutions, LLC dba Leiters Health"
+
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Edge Pharmacy Services LLC
+
+```{r edge_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Edge Pharmacy Services LLC"
+
+region_edge <- c("Alaska", "Arizona", "Arkansas", "California", "Colorado", 
+                 "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", 
+                 "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", 
+                 "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", 
+                 "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", 
+                 "New Hampshire", "New Jersey", "New Mexico", "New York", 
+                 "North Carolina", "North Dakota", "Ohio", "Oklahoma", 
+                 "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", 
+                 "South Dakota", "Tennessee", "Texas", "Utah", "Vermont",
+                 "Washington", "West Virginia", "Wisconsin", "Wyoming")
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Empower Pharmacy
+
+```{r empower_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Empower Pharmacy"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Fagron Sterile Services
+
+```{r fagron_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Fagron Compounding Services LLC dba Fagron Sterile Services LLC"
+# x <- "Fagron Sterile Services LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+ 
+x <- "Fagron Compounding Services LLC dba Fagron Sterile Services LLC"
+
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Hybrid Pharma
+
+```{r hybrid_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Hybrid Pharma"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### JCB Laboratories LLC
+
+```{r jcb_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "JCB Laboratories LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Optum Compounding Services, LLC
+
+```{r optum_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Optum Compounding Services, LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Pine Pharmaceuticals LLC
+
+```{r pine_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Pine Pharmaceuticals LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### RC Outsourcing, LLC
+
+```{r rc_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "RC Outsourcing, LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+
+# all_states <- map_data("state")
+# region_ram <- c("idaho", "utah", "wyoming",
+#                 "montana")
+# 
+# ram_geo_data <- geographic_data %>%
+#   filter(Facility == "RAM Pharma, Inc.") %>%
+#   distinct(Facility, .keep_all = TRUE)
+# 
+# region_rc <- c("alabama", "alaska", "arizona", "colorado", "connecticut", 
+#                "delaware", "georgia", "hawaii", "idaho", "illinois", "indiana", 
+#                "iowa", "kansas", "kentucky", "louisiana", "michigan", "minnesota", 
+#                "missouri", "montana", "nebraska", "nevada", "new jersey", 
+#                "north carolina", "ohio", "oregon", "pennsylvania", "rhode Island", 
+#                "south Dakota", "tennessee", "texas", "utah","washington", 
+#                "west Virginia", "wisconsin", "wyoming")
+# 
+# rc_geo_data <- geographic_data %>%
+#   filter(Facility == "RC Outsourcing, LLC") %>%
+#   distinct(Facility, .keep_all = TRUE)
+# 
+# state.short <- bind_cols(state.abb, state.center) 
+# 
+# state.short <- state.short %>%
+#   rename(abb = ...1) %>%
+#   filter(!abb %in% c("AK", "HI"))
+# 
+# ggplot() +
+#   geom_polygon(data = all_states, aes(x=long, y=lat, group = group), 
+#                fill="grey", colour = "white") +
+#   geom_polygon(aes(x=long, y=lat, group = group), 
+#                fill="lightblue",  colour = "white", alpha = 0.7, 
+#                data = filter(all_states, region %in% region_ram)) +
+#   geom_polygon(aes(x=long, y=lat, group = group), 
+#                fill="lightcoral",  colour = "white", alpha = 0.3, 
+#                data = filter(all_states, region %in% region_rc)) +
+#   geom_point(data = ram_geo_data, aes(x = Latitude, y = Longitude),
+#              color = "lightblue", size = 2.5) +
+#   geom_text(data = state.short, aes(x = x, y = y), label = state.short$abb) +
+#   geom_label_repel(data = ram_geo_data, aes(x = Latitude, y = Longitude), 
+#             label = "RAM Pharma, Inc.",
+#             nudge_x = -6.25, nudge_y = 2.25) +
+#   geom_point(data = rc_geo_data, aes(x = Latitude, y = Longitude),
+#              color = "lightcoral", size = 2.5) +
+#   geom_label_repel(data = rc_geo_data, aes(x = Latitude, y = Longitude), 
+#             label = "RC Outsourcing, LLC",
+#             nudge_x = 4.25, nudge_y = 4.75) +
+#   theme_void() +
+#   labs(title = "Territory Map for RC Outsourcing, LLC and Compound Preferred, Inc. (2021)")
+  
+```
+
+### Carie Boyd's Prescription Shop
+
+```{r boyd_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Right Value Drug Stores llc dba Carie Boyd's Prescription Shop"
+# x <- "Right Value Drug Stores"
+
+region_boyd <- c("Alaska", "Arizona", "Arkansas", "Colorado", 
+                 "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", 
+                 "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", 
+                 "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", 
+                 "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", 
+                 "New Hampshire", "New Jersey", "New Mexico", 
+                 "North Carolina", "North Dakota", "Ohio", "Oklahoma", 
+                 "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", 
+                 "South Dakota", "Tennessee", "Texas", "Utah", "Virginia",
+                 "Washington", "Wisconsin", "Wyoming")
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+x <- "Right Value Drug Stores llc dba Carie Boyd's Prescription Shop"
+
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Sincerus Florida, LLC
+
+```{r sincerus_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Sincerus Florida, LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### US Specialty Formulations LLC
+
+```{r usspec_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "US Specialty Formulations LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Wells Pharmacy, Inc
+
+```{r wells_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Wells Pharmacy, Inc"
+
+region_wells <- c("Alabama", "Alaska", "Arizona", "Arkansas", "Colorado", 
+                  "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", 
+                  "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", 
+                  "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", 
+                  "Mississippi", "Missouri", "Montana", "Nebraska", 
+                  "New Hampshire", "New Jersey", "New Mexico", 
+                  "North Carolina", "North Dakota", "Oklahoma", 
+                  "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", 
+                  "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia",
+                  "Washington", "West Virginia", "Wisconsin")
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+
+### OLYMPIA PHARMACY
+
+```{r olympia_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "OLYMPIA PHARMACY"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### RXQ Compounding, LLC
+
+```{r rxq_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "RXQ Compounding, LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### KRS Global Biotechnology, Inc.
+
+```{r krs_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "KRS Global Biotechnology, Inc."
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### LEESAR INC
+
+```{r leesar_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "LEESAR INC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Nephron Sterile Compounding Center, LLC
+
+```{r nephron_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Nephron Sterile Compounding Center, LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### US Compounding, Inc.
+
+```{r us_comp_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "US Compounding, Inc."
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Central Admixture Pharmacy Services, Inc.
+
+```{r central_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Central Admixture Pharmacy Services, Inc."
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Pharmaceutic Labs, LLC
+
+```{r pharmaceutic_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Pharmaceutic Labs, LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+
+### Eagle Pharmacy, Inc.
+
+```{r eagle_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Eagle Pharmacy, Inc."
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Exela Pharma Sciences, LLC.
+
+```{r exela_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Exela Pharma Sciences, LLC."
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### F. H. Investments. Inc. DBA Asteria Health
+
+```{r asteria_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "F. H. Investments. Inc. DBA Asteria Health"
+# x <- "Asteria Health"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+x <- "F. H. Investments. Inc. DBA Asteria Health"
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Fresenius Kabi Compounding, LLC
+
+```{r fresenius_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Fresenius Kabi Compounding, LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Fusion IV Pharmaceuticals, Inc. dba Axia Pharmaceuticals
+
+```{r fusion_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Fusion IV Pharmaceuticals, Inc. dba Axia Pharmaceuticals"
+# x <- "Axia Pharmaceuticals"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+x <- "Fusion IV Pharmaceuticals, Inc. dba Axia Pharmaceuticals"
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Imprimis NJOF, LLC
+
+```{r imprimis_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Imprimis NJOF, LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### IntegraDose Compounding Services, LLC
+
+```{r integradose_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "IntegraDose Compounding Services, LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Leiter's Compounding
+
+```{r leiterscp_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Leiter's Compounding"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Medi-Fare Drug
+
+```{r medifare_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Medi-Fare Drug"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### New England Life Care LLC dba Advanced Compounding Solutions
+
+```{r newengland_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "New England Life Care LLC dba Advanced Compounding Solutions"
+# x <- "Advanced Compounding Solutions"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+x <- "New England Life Care LLC dba Advanced Compounding Solutions"
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Nubratori, Inc
+
+```{r nubratori_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Nubratori, Inc"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Pacifico National, Inc.  dba AmEx Pharmacy
+
+```{r pacifico_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Pacifico National, Inc.  dba AmEx Pharmacy"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Pentec Health, Inc
+
+```{r pentec_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Pentec Health, Inc"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### PharMEDium Services, LLC SugarLand
+
+```{r pharmed_sugarland_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "PharMEDium Services, LLC SugarLand"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Pharmedium Services, LLC, Dayton
+
+```{r pharmed_dayton_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Pharmedium Services, LLC, Dayton"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Pharmedium Services, LLC Cleveland
+
+```{r pharmed_cleveland_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Pharmedium Services, LLC Cleveland"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Premier Pharmacy Labs, Inc
+
+```{r premier_cleveland_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Premier Pharmacy Labs, Inc"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Qualgen LLC
+
+```{r qualgen_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Qualgen LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### QuVa Pharma, Inc.
+
+```{r quva_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "QuVa Pharma, Inc."
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### SCA Pharmaceuticals, LLC
+
+```{r sca_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "SCA Pharmaceuticals, LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Ssm Hlth St Clare Hosp-Fnton
+
+```{r ssm_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Ssm Hlth St Clare Hosp-Fnton"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### SterRx
+
+```{r sterrx_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "SterRx"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Stokes Healthcare
+
+```{r stokes_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Stokes Healthcare"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### BayCare Integrated Service Center, LLC dba BayCare Central Pharmacy
+
+```{r baycare_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "BayCare Integrated Service Center, LLC dba BayCare Central Pharmacy"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### FARMAKEIO OUTSOURCING LLC
+
+```{r farmakeio_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "FARMAKEIO OUTSOURCING LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### MedisourceRx
+
+```{r mediasource_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "MedisourceRx"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### OurPharma LLC
+
+```{r ourpharma_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "OurPharma LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### STAQ Pharma
+
+```{r staq_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "STAQ Pharma"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### Wells Pharma of Houston
+
+```{r wells_houston_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Wells Pharma of Houston"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+### BPI Labs LLC
+
+```{r bpi_houston_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "BPI Labs LLC"
+
+#Table of Facilities
+
+  facility_table_1 <- product_list_graphics %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+  
+  facility_table_1
+  
+    facility_table_2 <- product_list_graphics %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+# Segment Graph
+segment_graph(x)
+  
+```
+
+## Lists
+
+### Dental
+
+```{r descending_1, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+facility_product_count %>%
+  select(Active, Segment, ActiveCount, ProducedByCP) %>%
+  filter(Segment == "Dental") %>%
+  distinct(Active, .keep_all = TRUE) %>%
+  arrange(desc(ActiveCount)) %>%
+  knitr::kable()
+
+```
+
+### Dermatology
+
+```{r descending_2, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+facility_product_count %>%
+  select(Active, Segment, ActiveCount, ProducedByCP) %>%
+  filter(Segment == "Dermatology") %>%
+  distinct(Active, .keep_all = TRUE) %>%
+  arrange(desc(ActiveCount)) %>%
+  knitr::kable()
+
+```
+
+### InfusionTherapy
+
+```{r descending_3, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+facility_product_count %>%
+  select(Active, Segment, ActiveCount, ProducedByCP) %>%
+  filter(Segment == "InfusionTherapy") %>%
+  distinct(Active, .keep_all = TRUE) %>%
+  arrange(desc(ActiveCount)) %>%
+  knitr::kable()
+
+```
+
+### Nutraceuticals
+
+```{r descending_4, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+facility_product_count %>%
+  select(Active, Segment, ActiveCount, ProducedByCP) %>%
+  filter(Segment == "Nutraceuticals") %>%
+  distinct(Active, .keep_all = TRUE) %>%
+  arrange(desc(ActiveCount)) %>%
+  knitr::kable()
+
+```
+
+### Optical
+
+```{r descending_5, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+facility_product_count %>%
+  select(Active, Segment, ActiveCount, ProducedByCP) %>%
+  filter(Segment == "Optical") %>%
+  distinct(Active, .keep_all = TRUE) %>%
+  arrange(desc(ActiveCount)) %>%
+  knitr::kable()
+
+```
+
+### Other
+
+```{r descending_6, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+facility_product_count %>%
+  select(Active, Segment, ActiveCount, ProducedByCP) %>%
+  filter(Segment == "Other") %>%
+  distinct(Active, .keep_all = TRUE) %>%
+  arrange(desc(ActiveCount)) %>%
+  knitr::kable()
+
+```
+
+### Surgical
+
+```{r descending_7, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+facility_product_count %>%
+  select(Active, Segment, ActiveCount, ProducedByCP) %>%
+  filter(Segment == "Surgical") %>%
+  distinct(Active, .keep_all = TRUE) %>%
+  arrange(desc(ActiveCount)) %>%
+  knitr::kable()
+
+```
+
+### PlasticSurgery
+
+```{r descending_8, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+facility_product_count %>%
+  select(Active, Segment, ActiveCount, ProducedByCP) %>%
+  filter(Segment == "PlasticSurgery") %>%
+  distinct(Active, .keep_all = TRUE) %>%
+  arrange(desc(ActiveCount)) %>%
+  knitr::kable()
+
+```
+
