@@ -1,0 +1,222 @@
+---
+title: "FDA 503B Product Report"
+author: "08/30/2021 v1.0"
+site: bookdown::bookdown_site
+documentclass: book
+output:
+  bookdown::gitbook: default
+  #bookdown::pdf_book: default
+  #bookdown::html_document2: default
+---
+
+```{r import_libraries, include=FALSE, echo = FALSE, message=FALSE, cache = FALSE, warning = FALSE}
+
+library(tidyverse)
+library(readr)
+library(readxl)
+# library(gt)
+library(ggplot2)
+# library(maps)
+# library(DT)
+# library(ggrepel)
+# library(ggmap)
+# library(plotly)
+
+```
+
+```{r import_data, include=FALSE, echo = FALSE, message=FALSE, cache = FALSE}
+# Import Facility Information
+facility_info <- read_excel("~/Desktop/FDA-503B/report/data/facility_info.xlsx")
+
+# Import Geographic data
+geographic_data <- read_excel("~/Desktop/FDA-503B/report/data/geographic_data.xlsx")
+
+# Facility Product Count 
+facility_product_count <- read_csv("~/Desktop/FDA-503B/report/data/facility_product_count.csv")
+
+# Product List
+product_list <- read_csv("~/Desktop/FDA-503B/report/data/product_list.csv")
+```
+
+```{r custom_functions, include=FALSE, echo = FALSE, message=FALSE, cache = FALSE}
+
+# Reorder size, honestly not sure if this is still being used by anything
+reorder_size <- function(x) {
+  factor(x, levels = names(sort(table(x), decreasing = TRUE)))
+}
+
+segment_graph <- function(a){
+  
+  df <- tibble(
+  Segment = c("Surgical", "PlasticSurgery", "InfusionTherapy", "Optical",
+              "Other", "Dermatology", "Dental", "Nutraceuticals")
+)
+  
+  facility <- facility_product_count %>%
+    filter(Facility == a) %>%
+    distinct(Segment, .keep_all = TRUE) %>%
+    select(Segment, FacilitySegmentCount)
+  
+  df <- df %>%
+    left_join(facility, by = "Segment")
+  
+  ggplot(df, aes(x = reorder(Segment, -FacilitySegmentCount), y = FacilitySegmentCount)) +
+    geom_bar(stat = "identity") +
+    geom_text(aes(label = FacilitySegmentCount), vjust = -0.5) +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+    labs(title = paste(a, "Segmentation", sep = " " ), x = element_blank(), 
+         y = "# of Products in Segment")
+  
+}
+```
+
+# Data Sources
+
+This data covers the years 2019 and 2020. 
+
+[Segmentation Data](./data/user-formatted/Facility Product Count.xlsx)
+
+This Excel document is focused on products and segments, it contains limited
+information on facilities, and is best used in conjunction with this report. Each 
+product will appear multiple times within this document, one time for each facility
+that produced it, and one time for each segment that it falls into. 
+
+By using the Excel filter functions of each column you can refine the data you
+are looking at to see which products are in each segment, products that are produced
+by a single facility, and what products facilities are producing. This report acts
+as a supplement to this document, presenting information from other sets of data 
+to enable product related decision making. 
+
+Column               | Description
+-------------------- | -------------
+Active               | Active Ingredient
+Facility             | Registered 503B Facility name
+Segment              | Dental, Dermatology, InfusionTherapy, Nutraceuticals, Optical, Other, PlasticSurgery, Surgical
+ActiveCount          | Number of times Active was reported as produced
+FacilitySegmentCount | Number of products Facility produces within Segment
+SegmentCount         | Number of products within Segment
+ProducedByCP         | Y/NA Has the Active ever been produced by RAM/Compound Preferred?
+
+[FDA 503B Product List](./data/user-formatted/Raw FDA Data.xlsx)
+
+This document contains unmodified data directly from the FDA in a useful Excel
+format. 
+
+Column                  | Description
+----------------------- | -------------
+Active Ingredients      | Active ingredients in product
+Active Ingredients Info | Concentration of Active  
+Dosage                  | Reported dosage form
+Estab. Name             | Registered 503B Facility name
+Package Description     | Description of package
+NDC Package Code        | Unique packaging identifier
+Report Year             | Year and 6 month period in which Active was produced
+
+
+[Facility Information](./data/facility_info.xlsx)
+
+The information in this document can be found summarized in this report under
+facility information summaries. The document contains information on each 503B
+facility that reported production in the years of 2019 and 2020. 
+
+Column               | Description
+-------------------- | -------------
+Facility             | Registered 503B Facility name
+UID                  | FDA Unique Identifier 
+City                 | City Facility Location
+Longitude            | Geolocation
+Latitude             | Geolocation
+InitialRegistration  | Initial registration as an FDA 503B facility
+FacilitySqFt         | Estimated facility square footage, estimates are based on Google Map imagery 
+Employees            | Dun & Bradstreet 2021 employee estimate
+Services             | Services offered by Facility
+EstSales             | Dun & Bradstreet 2021 sales estimate
+EstFacilitySize      | Facility size estimate, based on SqFt, EmployeeEst, and EstSales
+
+[Geographic Data](./data/geographic_data.xlsx)
+
+This document contains specific information about the states in which some facilities 
+can distribute compounded products. This information is mostly useful in graphic form. 
+
+Column               | Description
+-------------------- | -------------
+Facility             | Registered 503B Facility name
+Longitude            | Geolocation
+Latitude             | Geolocation
+Territory            | Facility territory, list of US states in which the facility can deliver products
+
+# Facility Information Example 
+
+## RAM Pharma, Inc.
+
+### Table 1
+
+Each 503B facility entry contains similar information. The first table contains
+information on location, registration, and some key information about facility
+size, sales estimates, and a head count estimate. 
+
+Sales and head count are derived from the Dun & Bradstreet company database, 
+unless specific information about head count was available on a facilities 
+website. Square footage was estimated based on Google Maps images. 
+
+```{r ram_facility_info_1, include = TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%"}
+
+x <- "RAM Pharma, Inc."
+
+#Table of Facilities
+
+  facility_table_1 <- product_list %>%
+    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == x) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable() 
+  
+  facility_table_1
+  
+```
+
+### Table 2
+
+The second table contains information including a facility size estimate, 
+product specific information, and services offered. The column Product count represents the number of unique products reported by a facility in the years 
+of 2019 and 2020. The column Competing is the number of those products that RAM/Compound Preferred has produced and reported in the past. 
+
+```{r ram_facility_info_2, include = TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%"}
+  
+x <- "RAM Pharma, Inc."
+
+  facility_table_2 <- product_list %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    filter(Facility == x) %>%
+    mutate(Competing = "NA") %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+
+```
+
+### Segment Chart
+
+The final graph that will appear on each facility page is a segmentation bar chart. 
+This chart shows the number of products in each facilities product mix that fall
+into a particular segment. 
+
+For example, BLT Cream is categorized into two segments, Dental and PlasticSurgery.
+In the chart below, BLT Cream will be counted twice, once in Dental and once in 
+PlasticSurgery. 
+
+If we wanted to know exactly which 32 products made up the the PlasticSurgery 
+segment for RAM, we could use [Segmentation Data](./data/Facility Product Count.xlsx) Excel document. 
+
+```{r ram_facility_info_3, include = TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning=FALSE}
+# Segment Graph RAM Pharma
+
+x <- "RAM Pharma, Inc."
+
+segment_graph(x)
+
+```

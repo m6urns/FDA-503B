@@ -5,13 +5,13 @@
 library(tidyverse)
 library(readr)
 library(readxl)
-library(gt)
-library(ggplot2)
-library(maps)
-library(DT)
-library(ggrepel)
-library(ggmap)
-library(plotly)
+# library(gt)
+# library(ggplot2)
+# library(maps)
+# library(DT)
+# library(ggrepel)
+# library(ggmap)
+# library(plotly)
 
 # Import Data
 
@@ -447,7 +447,53 @@ facility_product_count <- joined_segments_4 %>%
   # left_join(facility_info, by = "Facility")
 
 # Write facility_product_count to a csv file if needed. 
-# write.csv(facility_product_count, "~/Desktop/FDA-503B/data/facility_product_count.csv")
+write.csv(facility_product_count, "~/Desktop/FDA-503B/data/facility_product_count.csv")
+
+# Modify product_list to include ProductCount, Competing
+product_count_p_l <- facility_product_count %>%
+  select(Facility, ProductCount) %>%
+  distinct(Facility, .keep_all = TRUE)
+
+number_competing <- facility_product_count %>%
+  select(Active, Facility, ProducedByCP) %>%
+  group_by(Facility) %>%
+  distinct(Active, .keep_all = TRUE) %>%
+  filter(ProducedByCP == "Y") %>%
+  mutate(Competing = n()) %>%
+  distinct(Facility, .keep_all = TRUE) %>%
+  select(Facility, Competing)
+
+## Join ProductCount, and Competing
+product_list <- product_list %>%
+  left_join(product_count_p_l, by = "Facility")
+
+product_list <- product_list%>%
+  left_join(number_competing, by = "Facility")
+
+# Modify product_list to include FacilitySqFt, and Employee #'s
+
+# sqft_employee <- facility_info %>%
+#   select(Facility, FacilitySqFt, Employees)
+# 
+# product_list <- product_list %>%
+#   select(-FacilitySqFt, -Employees) %>%
+#   left_join(sqft_employee, by = "Facility")
+
+write_csv(product_list, "~/Desktop/FDA-503B/data/product_list.csv")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
