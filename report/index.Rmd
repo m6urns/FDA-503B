@@ -14,13 +14,8 @@ output:
 library(tidyverse)
 library(readr)
 library(readxl)
-# library(gt)
 library(ggplot2)
-# library(maps)
-# library(DT)
-# library(ggrepel)
-# library(ggmap)
- library(plotly)
+library(plotly)
 
 ```
 
@@ -52,39 +47,47 @@ product_list <- read_csv("./data/product_list.csv")
 # }
 
 segment_graph <- function(a){
-  
-  df <- tibble(
-    Segment = c("Surgical", "PlasticSurgery", "InfusionTherapy", "Optical",
-                "Other", "Dermatology", "Dental", "Nutraceuticals", "Uncatagorized")
-  )
-  
-  facility <- facility_product_count %>%
+
+  count_dosage <- facility_product_count %>%
     filter(Facility == a) %>%
-    distinct(Segment, .keep_all = TRUE) %>%
-    select(Segment, Dosage, FacilitySegmentCount) %>%
-    mutate(UID = row_number())
+    select(Active, Dosage, Segment, Facility)
   
-  facility_na <- facility %>%
-    filter(is.na(Segment)) %>%
-    mutate(Segment = "Uncatagorized")
+  group_segment_facility <- count_dosage %>%
+    group_by(Segment, Facility) %>%
+    distinct(Active, .keep_all = TRUE) %>%
+    mutate(FacilitySegmentCount = n()) %>%
+    ungroup() %>%
+    select(Facility, Segment, FacilitySegmentCount)
 
-  facility <- facility %>%
-    filter(!UID %in% facility_na$UID)
+  count_dosage <- count_dosage %>%
+    left_join(group_segment_facility, by = c("Facility", "Segment")) %>%
+    distinct_all()
 
-  facility <- facility %>%
-    bind_rows(facility_na)
+  group_dosage_segment <- count_dosage %>%
+    group_by(Facility, Segment, Dosage) %>%
+    mutate(FacilityDosageCount = n()) %>%
+    ungroup() %>%
+    select(Facility, Segment, Dosage, FacilityDosageCount) %>%
+    distinct_all() 
 
-  df <- df %>%
-    left_join(facility, by = "Segment")
+  count_dosage <- count_dosage %>%
+    left_join(group_dosage_segment, by = c("Facility", "Segment", "Dosage")) %>%
+    distinct_all() %>% 
+    select(-Active, -Facility) %>%
+    group_by(Segment) %>%
+    arrange(Segment)
 
-  ggplot(facility, aes(x = reorder(Segment, -FacilitySegmentCount), y = FacilitySegmentCount, fill = Dosage)) +
-    geom_bar(stat = "identity") +
-    geom_text(aes(label = FacilitySegmentCount), vjust = -0.5) +
+  segment_labels <- count_dosage %>%
+    distinct(Segment, FacilitySegmentCount)
+
+  ggplot() +
+    geom_bar(count_dosage, mapping = aes(x = reorder(Segment, -FacilitySegmentCount), fill = Dosage)) +
+    geom_text(segment_labels, mapping = aes(x = reorder(Segment, -FacilitySegmentCount), y = FacilitySegmentCount, label =    FacilitySegmentCount), vjust = -0.5) +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, hjust = 1),
-          axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
-    labs(title = paste(a, "Segmentation", sep = " " ), x = element_blank(), 
-         y = "# of Products in Segment")
+       axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+    labs(title = paste(a, "Segmentation", sep = " " ), x = element_blank(),
+       y = "# of Products in Segment")
   
 }
 

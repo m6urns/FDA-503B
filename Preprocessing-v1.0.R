@@ -320,9 +320,12 @@ products_in_each <- products_in_each %>%
 ## Filter, looking for segment entries in segmentation column, then make a
 ## column just to represent that piece of info. Leave filtered, recombine
 ## at the end.
-products_na <- product_in_each %>%
+# products_na <- product_in_each %>%
+#   filter(is.na(Segmentation)) %>%
+#   mutate(Catagory = "NA")
+products_na <- product_count_dosage %>%
   filter(is.na(Segmentation)) %>%
-  mutate(Catagory = "NA")
+  mutate(Catagory = "Uncatagorized")
 
 products_other <- products_in_each %>%
   filter(grepl("Other", Segmentation)) %>%
@@ -383,11 +386,11 @@ group_active <- products_single_seg %>%
   ungroup() %>%
   select(Active, Segment, Facility, ActiveCount)
 
-## Number of products Facility produces across segments  
-group_facility <- group_segment_facility  %>%
+## Number of products Facility produces across segments 
+group_facility <- products_single_seg  %>%
   group_by(Facility) %>%
-  distinct(Segment, .keep_all = TRUE) %>%
-  mutate(ProductCount = sum(FacilitySegmentCount)) %>%
+  distinct(Active, .keep_all = TRUE) %>%
+  mutate(ProductCount = n()) %>%
   ungroup() %>%
   select(Facility, ProductCount)
 
