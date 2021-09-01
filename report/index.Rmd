@@ -36,6 +36,7 @@ facility_product_count <- read_csv("~/Desktop/FDA-503B/report/data/facility_prod
 
 # Product List
 product_list <- read_csv("~/Desktop/FDA-503B/report/data/product_list.csv")
+
 ```
 
 ```{r custom_functions, include=FALSE, echo = FALSE, message=FALSE, cache = FALSE}
@@ -88,7 +89,6 @@ facility_table_2 <- function(a){
     facility_table_2 <- product_list %>%
     select(Facility, EstFacilitySize, ProductCount, Competing, Services, `503A`) %>%
     filter(Facility == a) %>%
-    mutate(Competing = "NA") %>%
     distinct(Facility, .keep_all = TRUE) %>%
     knitr::kable()
 
@@ -121,6 +121,7 @@ Active               | Active Ingredient
 Facility             | Registered 503B Facility name
 Segment              | Dental, Dermatology, InfusionTherapy, Nutraceuticals, Optical, Other, PlasticSurgery, Surgical
 ActiveCount          | Number of times Active was reported as produced
+ProductCount         | Number of products Facility produces across segments
 FacilitySegmentCount | Number of products Facility produces within Segment
 SegmentCount         | Number of products within Segment
 ProducedByCP         | Y/NA Has the Active ever been produced by RAM/Compound Preferred?
@@ -191,17 +192,6 @@ website. Square footage was estimated based on Google Maps images.
 
 x <- "RAM Pharma, Inc."
 
-#Table of Facilities
-
-  # facility_table_1 <- product_list %>%
-  #   # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
-  #   select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
-  #   filter(Facility == x) %>%
-  #   distinct(Facility, .keep_all = TRUE) %>%
-  #   knitr::kable() 
-  # 
-  # facility_table_1
-
 facility_table_1(x)
   
 ```
@@ -215,15 +205,6 @@ of 2019 and 2020. The column Competing is the number of those products that RAM/
 ```{r ram_facility_info_2, include = TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%"}
   
 x <- "RAM Pharma, Inc."
-
-  # facility_table_2 <- product_list %>%
-  #   select(Facility, EstFacilitySize, ProductCount, Competing, Services, `503A`) %>%
-  #   filter(Facility == x) %>%
-  #   mutate(Competing = "NA") %>%
-  #   distinct(Facility, .keep_all = TRUE) %>%
-  #   knitr::kable()
-  # 
-  # facility_table_2
 
 facility_table_2(x)
 
@@ -324,6 +305,823 @@ facility_table_2(x)
 segment_graph(x)
 
 ```
+
+### Apollo Care, LLC
+
+```{r apollo_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Apollo Care, LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### ASP Cares
+
+```{r asp_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "ASP Cares"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Athenex Pharma Solutions, LLC
+
+```{r athenex_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Athenex Pharma Solutions, LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Atlas Pharmaceuticals, LLC
+
+```{r atlas_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Atlas Pharmaceuticals, LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Auro Pharmacies, Inc
+
+```{r auro_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Auro Pharmacies, Inc"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Avella of Deer Valley, Inc. #38
+
+```{r avella_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Avella of Deer Valley, Inc. #38"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### BayCare Integrated Service Center, LLC dba BayCare Central Pharmacy
+
+```{r baycare_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "BayCare Integrated Service Center, LLC dba BayCare Central Pharmacy"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### BPI Labs LLC
+
+```{r BPI_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "BPI Labs LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Brookfield Medical Surgical Supply
+
+```{r brookfield_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Brookfield Medical Surgical Supply"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### BSO, LLC
+
+```{r bso_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "BSO, LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Central Admixture Pharmacy Services, Inc.
+
+```{r central_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Central Admixture Pharmacy Services, Inc."
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Complete Pharmacy and Medical Solutions
+
+```{r complete_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Complete Pharmacy and Medical Solutions"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Denver Solutions, LLC dba Leiters Health
+
+```{r denver_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Denver Solutions, LLC dba Leiters Health"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Eagle Pharmacy, Inc.
+
+```{r eagle_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Eagle Pharmacy, Inc."
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Edge Pharmacy Services LLC
+
+```{r edge_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Edge Pharmacy Services LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Empower Pharmacy
+
+```{r empower_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Empower Pharmacy"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Exela Pharma Sciences, LLC.
+
+```{r exela_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Exela Pharma Sciences, LLC."
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Fagron Compounding Services LLC dba Fagron Sterile Services LLC
+
+```{r fagron_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Fagron Compounding Services LLC dba Fagron Sterile Services LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### F. H. Investments. Inc. DBA Asteria Health
+
+```{r fh_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "F. H. Investments. Inc. DBA Asteria Health"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### FARMAKEIO OUTSOURCING LLC
+
+```{r farmakeio_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "FARMAKEIO OUTSOURCING LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Fresenius Kabi Compounding, LLC
+
+```{r fresenius_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Fresenius Kabi Compounding, LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Fusion IV Pharmaceuticals, Inc. dba Axia Pharmaceuticals
+
+```{r fusion_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Fusion IV Pharmaceuticals, Inc. dba Axia Pharmaceuticals"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Hybrid Pharma
+
+```{r hybrid_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Hybrid Pharma"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Imprimis NJOF, LLC
+
+```{r imprimis_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Imprimis NJOF, LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### IntegraDose Compounding Services, LLC
+
+```{r integradose_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Imprimis NJOF, LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### JCB Laboratories LLC
+
+```{r jcb_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "JCB Laboratories LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### KRS Global Biotechnology, Inc.
+
+```{r krs_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "KRS Global Biotechnology, Inc."
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### LEESAR INC
+
+```{r leesar_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "LEESAR INC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Leiter's Compounding
+
+```{r leiters_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Leiter's Compounding"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Medi-Fare Drug
+
+```{r medifare_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Medi-Fare Drug"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### MedisourceRx
+
+```{r mediasource_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "MedisourceRx"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Nephron Sterile Compounding Center, LLC
+
+```{r nephron_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Nephron Sterile Compounding Center, LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### New England Life Care LLC dba Advanced Compounding Solutions
+
+```{r newengland_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "New England Life Care LLC dba Advanced Compounding Solutions"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Nubratori, Inc
+
+```{r nubratori_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Nubratori, Inc"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### OLYMPIA PHARMACY
+
+```{r olympia_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "OLYMPIA PHARMACY"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Optum Compounding Services, LLC
+
+```{r optum_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Optum Compounding Services, LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### OurPharma LLC
+
+```{r outpharma_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "OurPharma LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Pacifico National, Inc.  dba AmEx Pharmacy
+
+```{r pacifico_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Pacifico National, Inc.  dba AmEx Pharmacy"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Pentec Health, Inc
+
+```{r pentec_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Pentec Health, Inc"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Pantheon Labs LLC
+
+```{r pantheon_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Pantheon Labs LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Pharmaceutic Labs, LLC
+
+```{r pharmaceutic_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Pharmaceutic Labs, LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### PharMEDium Services, LLC SugarLand
+
+```{r pharmedsugarland_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "PharMEDium Services, LLC SugarLand"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Pharmedium Services, LLC, Dayton
+
+```{r pharmeddayton_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Pharmedium Services, LLC, Dayton"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Pharmedium Services, LLC Cleveland
+
+```{r pharmedcleveland_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Pharmedium Services, LLC Cleveland"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Pine Pharmaceuticals LLC
+
+```{r pine_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Pine Pharmaceuticals LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Premier Pharmacy Labs, Inc
+
+```{r premier_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Premier Pharmacy Labs, Inc"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Qualgen LLC
+
+```{r qualgen_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Qualgen LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### QuVa Pharma, Inc.
+
+```{r quva_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "QuVa Pharma, Inc."
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### RC Outsourcing, LLC
+
+```{r rc_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "RC Outsourcing, LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Right Value Drug Stores llc dba Carie Boyd's Prescription Shop
+
+```{r rightval_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Right Value Drug Stores llc dba Carie Boyd's Prescription Shop"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### RXQ Compounding, LLC
+
+```{r rxq_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "RXQ Compounding, LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### SCA Pharmaceuticals, LLC
+
+```{r sca_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "SCA Pharmaceuticals, LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Sincerus Florida, LLC
+
+```{r sincerus_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Sincerus Florida, LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Ssm Hlth St Clare Hosp-Fnton
+
+```{r ssm_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Ssm Hlth St Clare Hosp-Fnton"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### STAQ Pharma
+
+```{r staq_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "STAQ Pharma"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### SterRx
+
+```{r sterrx_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "SterRx"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Stokes Healthcare
+
+```{r stokes_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Stokes Healthcare"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### US Compounding, Inc.
+
+```{r uscomp_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "US Compounding, Inc."
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### US Specialty Formulations LLC
+
+```{r usspec_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "US Specialty Formulations LLC"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Wells Pharmacy, Inc
+
+```{r wells_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Wells Pharmacy, Inc"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+### Wells Pharma of Houston
+
+```{r wellshout_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "Wells Pharma of Houston"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+
+
+## Lists
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
