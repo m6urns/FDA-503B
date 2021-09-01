@@ -35,7 +35,8 @@ geographic_data <- read_excel("./data/geographic_data.xlsx")
 
 # Facility Product Count 
 # facility_product_count <- read_csv("~/Desktop/FDA-503B/report/data/facility_product_count.csv")
-facility_product_count <- read_csv("./data/facility_product_count.csv")
+facility_product_count <- read_csv("./data/facility_product_count.csv")# %>%
+   # mutate(Segment = case_when(is.na(Segment) ~ "NA"))
 
 # Product List
 # product_list <- read_csv("~/Desktop/FDA-503B/report/data/product_list.csv")
@@ -46,26 +47,37 @@ product_list <- read_csv("./data/product_list.csv")
 ```{r custom_functions, include=FALSE, echo = FALSE, message=FALSE, cache = FALSE}
 
 # Reorder size, honestly not sure if this is still being used by anything
-reorder_size <- function(x) {
-  factor(x, levels = names(sort(table(x), decreasing = TRUE)))
-}
+# reorder_size <- function(x) {
+#   factor(x, levels = names(sort(table(x), decreasing = TRUE)))
+# }
 
 segment_graph <- function(a){
   
   df <- tibble(
-  Segment = c("Surgical", "PlasticSurgery", "InfusionTherapy", "Optical",
-              "Other", "Dermatology", "Dental", "Nutraceuticals")
-)
+    Segment = c("Surgical", "PlasticSurgery", "InfusionTherapy", "Optical",
+                "Other", "Dermatology", "Dental", "Nutraceuticals", "Uncatagorized")
+  )
   
   facility <- facility_product_count %>%
     filter(Facility == a) %>%
     distinct(Segment, .keep_all = TRUE) %>%
-    select(Segment, FacilitySegmentCount)
+    select(Segment, Dosage, FacilitySegmentCount) %>%
+    mutate(UID = row_number())
   
+  facility_na <- facility %>%
+    filter(is.na(Segment)) %>%
+    mutate(Segment = "Uncatagorized")
+
+  facility <- facility %>%
+    filter(!UID %in% facility_na$UID)
+
+  facility <- facility %>%
+    bind_rows(facility_na)
+
   df <- df %>%
     left_join(facility, by = "Segment")
-  
-  ggplot(df, aes(x = reorder(Segment, -FacilitySegmentCount), y = FacilitySegmentCount)) +
+
+  ggplot(facility, aes(x = reorder(Segment, -FacilitySegmentCount), y = FacilitySegmentCount, fill = Dosage)) +
     geom_bar(stat = "identity") +
     geom_text(aes(label = FacilitySegmentCount), vjust = -0.5) +
     theme_classic() +
@@ -400,18 +412,18 @@ segment_graph(x)
 
 ```
 
-### BayCare Integrated Service Center, LLC dba BayCare Central Pharmacy
+<!-- ### BayCare Integrated Service Center, LLC dba BayCare Central Pharmacy -->
 
-```{r baycare_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+<!-- ```{r baycare_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE} -->
 
-x <- "BayCare Integrated Service Center, LLC dba BayCare Central Pharmacy"
+<!-- x <- "BayCare Integrated Service Center, LLC dba BayCare Central Pharmacy" -->
 
-facility_table_1(x)
-facility_table_2(x)
+<!-- facility_table_1(x) -->
+<!-- facility_table_2(x) -->
 
-segment_graph(x)
+<!-- segment_graph(x) -->
 
-```
+<!-- ``` -->
 
 ### BPI Labs LLC
 
@@ -638,7 +650,7 @@ segment_graph(x)
 
 ```{r integradose_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
 
-x <- "Imprimis NJOF, LLC"
+x <- "IntegraDose Compounding Services, LLC"
 
 facility_table_1(x)
 facility_table_2(x)
@@ -829,18 +841,18 @@ segment_graph(x)
 
 ```
 
-### Pantheon Labs LLC
+<!-- ### Pantheon Labs LLC -->
 
-```{r pantheon_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+<!-- ```{r pantheon_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE} -->
 
-x <- "Pantheon Labs LLC"
+<!-- x <- "Pantheon Labs LLC" -->
 
-facility_table_1(x)
-facility_table_2(x)
+<!-- facility_table_1(x) -->
+<!-- facility_table_2(x) -->
 
-segment_graph(x)
+<!-- segment_graph(x) -->
 
-```
+<!-- ``` -->
 
 ### Pharmaceutic Labs, LLC
 
@@ -1024,18 +1036,18 @@ segment_graph(x)
 
 ```
 
-### STAQ Pharma
+<!-- ### STAQ Pharma -->
 
-```{r staq_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+<!-- ```{r staq_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE} -->
 
-x <- "STAQ Pharma"
+<!-- x <- "STAQ Pharma" -->
 
-facility_table_1(x)
-facility_table_2(x)
+<!-- facility_table_1(x) -->
+<!-- facility_table_2(x) -->
 
-segment_graph(x)
+<!-- segment_graph(x) -->
 
-```
+<!-- ``` -->
 
 ### SterRx
 

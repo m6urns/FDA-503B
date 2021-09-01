@@ -125,7 +125,7 @@ product_list <- product_list_competitors %>%
 ## further modification later) Add a UID for each line to facilitate filter and
 ## join operations. 
 products_in_each <- product_list %>%
-  select(Active, Segmentation, Facility) %>%
+  select(Active, Dosage, Segmentation, Facility) %>%
   mutate(UID = row_number())
 
 ### Lidocaine; Tetracaine; Benzocaine
@@ -313,12 +313,17 @@ products_in_each <- products_in_each %>%
 
 ## Remove NA entries. This needs work on the segmentation side at line 50, to
 ## add more comprehensive info on product segments. 
-products_in_each <- products_in_each %>%
-  filter(Segmentation != "NA")
+# products_in_each <- products_in_each %>%
+#   filter(Segmentation != "NA")
+
 
 ## Filter, looking for segment entries in segmentation column, then make a
 ## column just to represent that piece of info. Leave filtered, recombine
 ## at the end.
+products_na <- product_in_each %>%
+  filter(is.na(Segmentation)) %>%
+  mutate(Catagory = "NA")
+
 products_other <- products_in_each %>%
   filter(grepl("Other", Segmentation)) %>%
   mutate(Catagory = "Other")
@@ -354,7 +359,7 @@ products_optical <- products_in_each %>%
 ## Recombine into a single set. 
 products_single_seg <- bind_rows(products_dental, products_other, products_derma,
                                  products_nutra, products_infusion, products_surgical,
-                                 products_plastic, products_optical) %>%
+                                 products_plastic, products_optical, products_na) %>%
   rename("Segment" = "Catagory") %>%
   select(-Segmentation, -UID)
 
@@ -440,7 +445,7 @@ cp_products <- bind_rows(cp_product_list, ram_product_list)
 ### remove duplicate columns, rename, and distinct_all() to remove duplicates. 
 facility_product_count <- joined_segments_4 %>%
   left_join(cp_products, by = "Active") %>%
-  select(Active, Facility.x, Segment.x, ActiveCount, ProductCount, FacilitySegmentCount,
+  select(Active, Dosage, Facility.x, Segment.x, ActiveCount, ProductCount, FacilitySegmentCount,
          SegmentCount, ProducedByCP) %>%
   rename(Segment = Segment.x, Facility = Facility.x) %>%
   distinct_all() #%>%
@@ -479,7 +484,6 @@ product_list <- product_list%>%
 #   left_join(add_fac_info, by = "Facility")
 
 write_csv(product_list, "~/Desktop/FDA-503B/report/data/product_list.csv") 
-
 
 
 
