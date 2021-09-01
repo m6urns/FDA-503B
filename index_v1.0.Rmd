@@ -1,13 +1,4 @@
----
-title: "FDA 503B Product Report"
-author: "08/30/2021 v1.0"
-site: bookdown::bookdown_site
-documentclass: book
-output:
-  bookdown::gitbook: default
-  #bookdown::pdf_book: default
-  #bookdown::html_document2: default
----
+
 
 ```{r import_libraries, include=FALSE, echo = FALSE, message=FALSE, cache = FALSE, warning = FALSE}
 
@@ -1018,7 +1009,7 @@ of 2019 and 2020. The column Competing is the number of those products that RAM/
 x <- "RAM Pharma, Inc."
 
   facility_table_2 <- product_list_graphics %>%
-    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services, `503A`) %>%
     filter(Facility == x) %>%
     mutate(Competing = "NA") %>%
     distinct(Facility, .keep_all = TRUE) %>%
@@ -1171,8 +1162,7 @@ x <- "AnazaoHealth Corporation"
 
 #Table of Facilities
 
-  facility_table_1 <- product_list_graphics %>%
-    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+  facility_table_1 <- product_list %>%
     select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
     filter(Facility == x) %>%
     distinct(Facility, .keep_all = TRUE) %>%
@@ -1180,7 +1170,7 @@ x <- "AnazaoHealth Corporation"
   
   facility_table_1
   
-    facility_table_2 <- product_list_graphics %>%
+    facility_table_2 <- product_list %>%
     select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
     filter(Facility == x) %>%
     distinct(Facility, .keep_all = TRUE) %>%

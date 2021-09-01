@@ -83,3 +83,5 @@ optical
 other
 surgical
 plasticsurgery
+facility-summaries
+facility-information-summaries

@@ -1,6 +1,6 @@
 ---
 title: "FDA 503B Product Report"
-author: "08/30/2021 v1.0"
+author: "08/31/2021 v1.0.1"
 site: bookdown::bookdown_site
 documentclass: book
 output:
@@ -20,7 +20,7 @@ library(ggplot2)
 # library(DT)
 # library(ggrepel)
 # library(ggmap)
-# library(plotly)
+ library(plotly)
 
 ```
 
@@ -70,6 +70,32 @@ segment_graph <- function(a){
          y = "# of Products in Segment")
   
 }
+
+facility_table_1 <- function(a){
+  
+  facility_table_1 <- product_list %>%
+    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+    filter(Facility == a) %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable() 
+  
+  facility_table_1
+  
+}
+
+facility_table_2 <- function(a){
+  
+    facility_table_2 <- product_list %>%
+    select(Facility, EstFacilitySize, ProductCount, Competing, Services, `503A`) %>%
+    filter(Facility == a) %>%
+    mutate(Competing = "NA") %>%
+    distinct(Facility, .keep_all = TRUE) %>%
+    knitr::kable()
+
+  facility_table_2
+  
+}
+
 ```
 
 # Data Sources
@@ -167,14 +193,16 @@ x <- "RAM Pharma, Inc."
 
 #Table of Facilities
 
-  facility_table_1 <- product_list %>%
-    # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
-    select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
-    filter(Facility == x) %>%
-    distinct(Facility, .keep_all = TRUE) %>%
-    knitr::kable() 
-  
-  facility_table_1
+  # facility_table_1 <- product_list %>%
+  #   # select(Facility, City, State, InitialRegistration, YearlyGross, SizeEst, Employees) %>%
+  #   select(Facility, City, State, InitialRegistration, EstSales, FacilitySqFt, Employees) %>%
+  #   filter(Facility == x) %>%
+  #   distinct(Facility, .keep_all = TRUE) %>%
+  #   knitr::kable() 
+  # 
+  # facility_table_1
+
+facility_table_1(x)
   
 ```
 
@@ -188,14 +216,16 @@ of 2019 and 2020. The column Competing is the number of those products that RAM/
   
 x <- "RAM Pharma, Inc."
 
-  facility_table_2 <- product_list %>%
-    select(Facility, EstFacilitySize, ProductCount, Competing, Services) %>%
-    filter(Facility == x) %>%
-    mutate(Competing = "NA") %>%
-    distinct(Facility, .keep_all = TRUE) %>%
-    knitr::kable()
+  # facility_table_2 <- product_list %>%
+  #   select(Facility, EstFacilitySize, ProductCount, Competing, Services, `503A`) %>%
+  #   filter(Facility == x) %>%
+  #   mutate(Competing = "NA") %>%
+  #   distinct(Facility, .keep_all = TRUE) %>%
+  #   knitr::kable()
+  # 
+  # facility_table_2
 
-  facility_table_2
+facility_table_2(x)
 
 ```
 
@@ -209,8 +239,8 @@ For example, BLT Cream is categorized into two segments, Dental and PlasticSurge
 In the chart below, BLT Cream will be counted twice, once in Dental and once in 
 PlasticSurgery. 
 
-If we wanted to know exactly which 32 products made up the the PlasticSurgery 
-segment for RAM, we could use [Segmentation Data](./data/Facility Product Count.xlsx) Excel document. 
+If we wanted to know exactly which products made up the the PlasticSurgery 
+segment for RAM, we could use the [Segmentation Data](./data/user-formatted/Facility Product Count.xlsx) Excel document. 
 
 ```{r ram_facility_info_3, include = TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning=FALSE}
 # Segment Graph RAM Pharma
@@ -220,3 +250,114 @@ x <- "RAM Pharma, Inc."
 segment_graph(x)
 
 ```
+
+# Facility Information Summaries
+
+## General Summaries
+
+### Segments Bar Graph
+
+```{r segments_bar, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%"}
+
+facility_product_count %>%
+  filter(Segment != "NA") %>%
+  select(Segment, SegmentCount) %>%
+  distinct(Segment, .keep_all = TRUE) %>%
+  mutate(SegmentCount = as.numeric(SegmentCount)) %>%
+  ggplot(aes(x = reorder(Segment, -SegmentCount), y = SegmentCount)) +
+  geom_bar(stat = "identity") +
+  theme_classic() +
+    geom_text(aes(label = SegmentCount), vjust = -0.5) +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+    labs(title = "Products in Segment", x = element_blank(), 
+         y = "# of Products in Segment", 
+         subtitle = "Note that many products fall into multiple segments.")
+
+```
+
+### 503B Facilities Geographic Distribution
+
+```{r geographic_facility_info, include = TRUE, echo = FALSE, message=FALSE, cache = TRUE, warning = FALSE, out.width="100%"}
+
+df <- facility_info
+
+g <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  showland = TRUE,
+  landcolor = toRGB("gray95"),
+  subunitcolor = toRGB("gray85"),
+  countrycolor = toRGB("gray85"),
+  countrywidth = 0.5,
+  subunitwidth = 0.5
+)
+
+fig <- plot_geo(df, lat = ~lat, lon = ~lon)
+fig <- fig %>% add_markers(
+  text = ~paste(Facility, City, State, EstFacilitySize, sep = "<br />"),
+  color =  ~EstFacilitySize, symbol = I("square"), size = I(8), 
+  hoverinfo = "text"
+)
+
+fig <- fig %>% layout(
+  title = 'Geographic Distribution of 503B Facilities (Hover for name)', geo = g
+)
+
+fig
+
+
+```
+
+## Facilities
+
+### AnazaoHealth Corporation
+
+```{r anazao_facility_info, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
+
+x <- "AnazaoHealth Corporation"
+
+facility_table_1(x)
+facility_table_2(x)
+
+segment_graph(x)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -17,19 +17,19 @@ library(readxl)
 
 ## Import Facility Info
 
-facility_info <- read_excel("~/Desktop/FDA-503B/data/facility_info.xlsx")
+facility_info <- read_excel("~/Desktop/FDA-503B/report/data/facility_info.xlsx")
 
 ## Import Geographic Data
 
-geographic_data <- read_excel("~/Desktop/FDA-503B/data/geographic_data.xlsx")
+geographic_data <- read_excel("~/Desktop/FDA-503B/report/data/geographic_data.xlsx")
 
 ## Import Raw Product List
 
-raw_product_list <- read_csv("~/Desktop/FDA-503B/data/CompiledProductList.csv")
+raw_product_list <- read_csv("~/Desktop/FDA-503B/report/data/CompiledProductList.csv")
 
 ## Import Raw Segmentation Data
 
-product_segmentation <- read_excel("~/Desktop/FDA-503B/data/Outsourcing Facility Product Segmentation.xlsx")
+product_segmentation <- read_excel("~/Desktop/FDA-503B/report/data/Outsourcing Facility Product Segmentation.xlsx")
 
 # Reformat and Modify for Visualization 
 
@@ -447,7 +447,7 @@ facility_product_count <- joined_segments_4 %>%
   # left_join(facility_info, by = "Facility")
 
 # Write facility_product_count to a csv file if needed. 
-write.csv(facility_product_count, "~/Desktop/FDA-503B/data/facility_product_count.csv")
+write.csv(facility_product_count, "~/Desktop/FDA-503B/report/data/facility_product_count.csv")
 
 # Modify product_list to include ProductCount, Competing
 product_count_p_l <- facility_product_count %>%
@@ -470,16 +470,15 @@ product_list <- product_list %>%
 product_list <- product_list%>%
   left_join(number_competing, by = "Facility")
 
-# Modify product_list to include FacilitySqFt, and Employee #'s
+# Modify product_list to include 503A Y/NA
 
-# sqft_employee <- facility_info %>%
-#   select(Facility, FacilitySqFt, Employees)
+# add_fac_info <- facility_info %>%
+#   select(Facility, `503A`)
 # 
 # product_list <- product_list %>%
-#   select(-FacilitySqFt, -Employees) %>%
-#   left_join(sqft_employee, by = "Facility")
+#   left_join(add_fac_info, by = "Facility")
 
-write_csv(product_list, "~/Desktop/FDA-503B/data/product_list.csv")
+write_csv(product_list, "~/Desktop/FDA-503B/report/data/product_list.csv") 
 
 
 
