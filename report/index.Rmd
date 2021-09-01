@@ -26,16 +26,20 @@ library(ggplot2)
 
 ```{r import_data, include=FALSE, echo = FALSE, message=FALSE, cache = FALSE}
 # Import Facility Information
-facility_info <- read_excel("~/Desktop/FDA-503B/report/data/facility_info.xlsx")
+# facility_info <- read_excel("~/Desktop/FDA-503B/report/data/facility_info.xlsx")
+facility_info <- read_excel("./data/facility_info.xlsx")
 
 # Import Geographic data
-geographic_data <- read_excel("~/Desktop/FDA-503B/report/data/geographic_data.xlsx")
+# geographic_data <- read_excel("~/Desktop/FDA-503B/report/data/geographic_data.xlsx")
+geographic_data <- read_excel("./data/geographic_data.xlsx")
 
 # Facility Product Count 
-facility_product_count <- read_csv("~/Desktop/FDA-503B/report/data/facility_product_count.csv")
+# facility_product_count <- read_csv("~/Desktop/FDA-503B/report/data/facility_product_count.csv")
+facility_product_count <- read_csv("./data/facility_product_count.csv")
 
 # Product List
-product_list <- read_csv("~/Desktop/FDA-503B/report/data/product_list.csv")
+# product_list <- read_csv("~/Desktop/FDA-503B/report/data/product_list.csv")
+product_list <- read_csv("./data/product_list.csv")
 
 ```
 
@@ -93,6 +97,19 @@ facility_table_2 <- function(a){
     knitr::kable()
 
   facility_table_2
+  
+}
+
+segment_desc_ActiveCount <- function(a){
+  
+  segment_desc_ActiveCount <- facility_product_count %>%
+  select(Active, Segment, ActiveCount, ProducedByCP) %>%
+  filter(Segment == a) %>%
+  distinct(Active, .keep_all = TRUE) %>%
+  arrange(desc(ActiveCount)) %>%
+  knitr::kable()
+  
+  segment_desc_ActiveCount
   
 }
 
@@ -253,8 +270,7 @@ facility_product_count %>%
     theme(axis.text.x = element_text(angle = 45, hjust = 1),
           axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
     labs(title = "Products in Segment", x = element_blank(), 
-         y = "# of Products in Segment", 
-         subtitle = "Note that many products fall into multiple segments.")
+         y = "# of Products in Segment")
 
 ```
 
@@ -1099,63 +1115,67 @@ segment_graph(x)
 
 ```
 
-
-
 ## Lists
 
+### Dental
 
+```{r descending_1, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
 
+segment_desc_ActiveCount("Dental")
 
+```
 
+### Dermatology
 
+```{r descending_2, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
 
+segment_desc_ActiveCount("Dermatology")
+```
 
+### InfusionTherapy
 
+```{r descending_3, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
 
+segment_desc_ActiveCount("InfusionTherapy")
 
+```
 
+### Nutraceuticals
 
+```{r descending_4, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
 
+segment_desc_ActiveCount("Nutraceuticals")
 
+```
 
+### Optical
 
+```{r descending_5, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
 
+segment_desc_ActiveCount("Optical")
 
+```
 
+### Surgical
 
+```{r descending_7, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
 
+segment_desc_ActiveCount("Surgical")
 
+```
 
+### PlasticSurgery
 
+```{r descending_8, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
 
+segment_desc_ActiveCount("PlasticSurgery")
 
+```
 
+### Other
 
+```{r descending_6, include-TRUE, echo = FALSE, message=FALSE, cache = FALSE, out.width="100%", warning = FALSE}
 
+segment_desc_ActiveCount("Other")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
