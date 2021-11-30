@@ -32,7 +32,7 @@ retrive.csv <- function(facility) {
   element <- driver$findElement(using = "css", ".btn-primary")
   driver$mouseMoveToLocation(webElement = element)
   driver$click()
-  Sys.sleep(3)
+  Sys.sleep(5)
   
   #Download CSV
   element <- driver$findElement(using = "css", ".buttons-html5")
@@ -64,7 +64,7 @@ retrive.csv <- function(facility) {
   element <- driver$findElement(using = "css", ".btn-primary")
   driver$mouseMoveToLocation(webElement = element)
   driver$click()
-  Sys.sleep(3)
+  Sys.sleep(5)
   
   #Download CSV
   element <- driver$findElement(using = "css", ".buttons-html5")
@@ -95,7 +95,7 @@ retrive.csv <- function(facility) {
   element <- driver$findElement(using = "css", ".btn-primary")
   driver$mouseMoveToLocation(webElement = element)
   driver$click()
-  Sys.sleep(3)
+  Sys.sleep(5)
   
   #Download CSV
   element <- driver$findElement(using = "css", ".buttons-html5")
@@ -126,7 +126,7 @@ retrive.csv <- function(facility) {
   element <- driver$findElement(using = "css", ".btn-primary")
   driver$mouseMoveToLocation(webElement = element)
   driver$click()
-  Sys.sleep(3)
+  Sys.sleep(5)
   
   #Download CSV
   element <- driver$findElement(using = "css", ".buttons-html5")
@@ -150,36 +150,36 @@ anazaohealth <- retrive.csv("AnazaoHealth Corporation")
 #data frame
 
 # 11/21 Currently Registered
-# list <- c("AnazaoHealth Corporation", "ANNOVEX PHARMA", "Apollo Care",
-#           "ASP CARES", "Athenex Pharma Solutions", "Atlas Pharmaceuticals",
-#           "BayCare Integrated Service Center", "Belcher Pharmaceuticals",
-#           "BPI Labs", "Brookfield Medical", "BSO LLC",
-#           "Central Admixture Pharmacy Services", "Complete Pharmacy and Medical Solutions",
-#           "Denver Solutions", "Eagle Pharmacy", "Edge Pharma", "Empower Pharmacy",
-#           "Exela Pharma Sciences", "Excite Pharma Services", "F.H. Investments",
-#           "Fagron Compounding Services", "Farmakeio Outsourcing", "Firefly Rx",
-#           "Fresenius Kabi Compounding", "Hikma Injectables USA", "Hybrid Pharma",
-#           "Imprimis NJOF", "INTACT PHARMACEUTICALS", "IntegraDose Compounding Services",
-#           "JCB Laboratories", "Kashiv BioSciences", "KRS Global Biotechnology",
-#           "Leesar Inc", "Medi-Fare Drug", "MedisourceRx", "Nephron Sterile Compounding Center",
-#           "New England Life Care", "Nubratori", "Olympia Compounding Pharmacy",
-#           "OurPharma", "Pharmaceutics International", "Pharmaceutic Labs", "Pine Pharmaceuticals",
-#           "PQ Pharmacy", "Primera Compounding", "Prisma Health Outsourcing Facility",
-#           "Providence Health", "QuVa Pharma", "RC Outsourcing", "Right Value Drug Stores",
-#           "RXQ Compounding", "SCA Pharmaceuticals", "Sincerus Florida", "SSM Health Care Corporation",
-#           "STAQ Pharma", "STASKA PHARMACEUTICALS", "STERRX", "Stokes Healthcare", 
-#           "Strukmyer Medical", "Tailstorm Health", "The Ritedose Corporation",
-#           "University of Tennessee", "US Specialty Formulations",
-#           "Wedgewood Connect", "Wells Pharma of Houston", "Wells Pharmacy",
-#           "RAM Pharma", "Baycare Central Pharmacy", "Asteria Health",
-#           "Advanced Compounding Solutions", "Carie Boyd", "Epicure Pharma", "Leiters Compounding")
+list <- c("AnazaoHealth Corporation", "ANNOVEX PHARMA", "Apollo Care",
+          "ASP CARES", "Athenex Pharma Solutions", "Atlas Pharmaceuticals",
+          "BayCare Integrated Service Center", "Belcher Pharmaceuticals",
+          "BPI Labs", "Brookfield Medical", "BSO LLC",
+          "Central Admixture Pharmacy Services", "Complete Pharmacy and Medical Solutions",
+          "Denver Solutions", "Eagle Pharmacy", "Edge Pharma", "Empower Pharmacy",
+          "Exela Pharma Sciences", "Excite Pharma Services", "F.H. Investments",
+          "Fagron Compounding Services", "Farmakeio Outsourcing", "Firefly Rx",
+          "Fresenius Kabi Compounding", "Hikma Injectables USA", "Hybrid Pharma",
+          "Imprimis NJOF", "INTACT PHARMACEUTICALS", "IntegraDose Compounding Services",
+          "JCB Laboratories", "Kashiv BioSciences", "KRS Global Biotechnology",
+          "Leesar Inc", "Medi-Fare Drug", "MedisourceRx", "Nephron Sterile Compounding Center",
+          "New England Life Care", "Nubratori", "Olympia Compounding Pharmacy",
+          "OurPharma", "Pharmaceutics International", "Pharmaceutic Labs", "Pine Pharmaceuticals",
+          "PQ Pharmacy", "Primera Compounding", "Prisma Health Outsourcing Facility",
+          "Providence Health", "QuVa Pharma", "RC Outsourcing", "Right Value Drug Stores",
+          "RXQ Compounding", "SCA Pharmaceuticals", "Sincerus Florida", "SSM Health Care Corporation",
+          "STAQ Pharma", "STASKA PHARMACEUTICALS", "STERRX", "Stokes Healthcare",
+          "Strukmyer Medical", "Tailstorm Health", "The Ritedose Corporation",
+          "University of Tennessee", "US Specialty Formulations",
+          "Wedgewood Connect", "Wells Pharma of Houston", "Wells Pharmacy",
+          "RAM Pharma", "Baycare Central Pharmacy", "Asteria Health",
+          "Advanced Compounding Solutions", "Carie Boyd", "Epicure Pharma", "Leiters Compounding")
 
 # 11/21 DBA's and formerly registered as
 # list <- c("RAM Pharma", "Baycare Central Pharmacy", "Asteria Health",
 #           "Advanced Compounding Solutions", "Carie Boyd", "Epicure Pharma", "Leiters Compounding")
 
 # Test List
-list <- c("RAM Pharma", "Baycare Central Pharmacy", "Asteria Health")
+#list <- c("RAM Pharma", "Baycare Central Pharmacy", "Asteria Health")
 
 retrive.multiples <- function(facilities, temp_path = "~/FDA-503B/scrape/data/temp/") {
 
