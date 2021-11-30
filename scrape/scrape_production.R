@@ -134,14 +134,13 @@ retrive.csv <- function(facility) {
   report4 <- read_csv("~/Downloads/Outsourcing Facility Product Report.csv")
   file.remove("~/Downloads/Outsourcing Facility Product Report.csv")
   
-  #Combine and save reports
+  #Combine and return report
   report_combined <- bind_rows(report1, report2, report3, report4)
-  write.csv(report_combined, "~/FDA-503B/scrape/data/ProductReport.csv")
+
+  return(report_combined)
 }
 
-retrive.csv("AnazaoHealth Corporation")
-
-#driver$goBack()
+anazaohealth <- retrive.csv("AnazaoHealth Corporation")
 
 #close the driver
 driver$close()
