@@ -1,4 +1,4 @@
-library(tidyverse)
+require(tidyverse)
 
 html <- read_html("https://www.fda.gov/drugs/human-drug-compounding/registered-outsourcing-facilities")
 
