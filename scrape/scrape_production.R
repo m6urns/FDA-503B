@@ -199,7 +199,7 @@ retrive.multiples <- function(facilities, temp_path = "~/FDA-503B/scrape/data/te
 
 comp_set <- retrive.multiples(list)
 
-comp_set
+write.csv(comp_set, "~/FDA-503B/scrape/data/Production_2019+2020_11_30_2021.csv")
 #close the driver
 driver$close()
 

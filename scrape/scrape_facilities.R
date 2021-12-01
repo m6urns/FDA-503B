@@ -1,4 +1,5 @@
 require(tidyverse)
+require(rvest)
 
 html <- read_html("https://www.fda.gov/drugs/human-drug-compounding/registered-outsourcing-facilities")
 
@@ -42,4 +43,4 @@ oldnames = c('...1', '...2', '...3', '...4', '...5', '...6', '...7', '...8')
 facility_table <- facility_table %>%
   rename_at(vars(oldnames), ~ title)
 
-write.csv(facility_table, '~/FDA-503B/scrape/data/facilitytable_112921.csv')
+write.csv(facility_table, '~/FDA-503B/scrape/data/FacilityTable_11_3_2021.csv')
