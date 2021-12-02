@@ -8,10 +8,6 @@ facility_table_raw <- read_csv("FDA-503B/scrape/data/FacilityTable_11_3_2021.csv
                                                      `Date of Most Recent Registration as an Outsourcing Facility1` = col_date(format = "%m/%d/%Y"), 
                                                      `End Date of Last FDA Inspection Related to Compounding2` = col_date(format = "%m/%d/%Y")))
 
-#Import uscities for location matching
-uscities <- read_csv("~/FDA-503B/databases/uscities.csv") %>%
-  select(city)
-
 # Drop X1 & Correct Column Names
 facility_table_reform <- facility_table_raw %>%
   select(-X1) %>%
@@ -31,7 +27,7 @@ facility_table_reform_1 <- facility_table_reform %>%
   select(-`Contact Name and Phone Number`) %>%
   bind_cols(names_numbers[ ,1]) %>%
   bind_cols(names_numbers[ ,2]) %>%
-  rename(`Contact Name` = ...8, `Phone Number` = ...9)S
+  rename(`Contact Name` = ...8, `Phone Number` = ...9)
   
 # Separate State and City
 # state <- facility_table_reform_1$`Facility Name` %>%
@@ -69,3 +65,5 @@ facility_table_reform_1 <- facility_table_reform %>%
 #     facility_table_reform_2$City[[i]] = "NA"
 #   }
 # }
+
+write.csv(facility_table_reform_1, "~/FDA-503B/clean/data/facility_table_clean.csv")
