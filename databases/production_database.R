@@ -13,6 +13,25 @@ production <- production %>%
 
 ## Reassigned UID's
 
-# BLT A1070
-# LT A1416
-# 
+### BLT A1070
+### LT A1416
+### Epinephrine; Lidocaine Hydrocloride A1241
+### Lidocaine; Epinephrine; Tetracaine A1245
+### Racepinephrine; Lidocaine; Tetracaine A1421
+### Lidocaine; Prilocaine; Tetracaine A1420
+### Lidocaine; Prilocaine; Tetracaine; Phenylephrine A1413
+### Lidocaine, Bupivacine A1403
+### Aspartic Acid; Glutamic Acid A1057
+### Fentanyl Citrate; Ropivacaine Hydrochloride
+### Lidocaine Hydrochloride; Phenylephrine Hydrochloride
+### Phenylephrine Hydrochloride; Tropicamide
+### Tropicamide; Phenylephrine Hydrochloride; Cyclopentolate Hydrochloride
+### Lidocaine
+### Vancomycin
+### Hydrocortisone; Tretinoin; Hydroquinone
+### Finasteride; Minoxidil
+
+### Notes:
+# Lidocaine Hydrochloride; Tetracaine Hydrochloride; Phenylephrine Hydrochloride
+# Look into combinations of ingredients including Phenylenphrine
+

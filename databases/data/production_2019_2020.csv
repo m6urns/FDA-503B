@@ -287,7 +287,7 @@
 286,Gentamicin,A1286,NA
 287,Gentamicin; Sodium Citrate,A1287,NA
 288,"Glucose, 6,6-Dideutero",A1288,NA
-289,Glutamic Acid; Aspartic Acid,A1289,NA
+289,Glutamic Acid; Aspartic Acid,A1057,NA
 290,"Glutamic Acid; Dextrose Monohydrate; Citric Acid Monohydrate; Trisodium Citrate Dihydrate; Sodium Phosphate, Monobasic, Monohydrate; Anhydrous Dextrose; Aspartic Acid; Potassium Chloride; Tromethamine",A1290,NA
 291,Glutamic Acid; Lysine Acetate; Serine; Tyrosine; N-Acetyltyrosine; Threonine; Cysteine Hydrochloride; Histidine; Arginine; Taurine; Dextrose Monohydrate; Aspartic Acid; Leucine; Methionine; Proline; Isoleucine; Alanine; Glycine; Phenylalanine; Tryptophan; Valine; Calcium Gluconate Monohydrate; Heparin Sodium,A1291,NA
 292,Glutamic Acid; Lysine Acetate; Serine; Tyrosine; N-Acetyltyrosine; Threonine; Cysteine Hydrochloride; Histidine; Arginine; Taurine; Dextrose Monohydrate; Leucine; Methionine; Proline; Aspartic Acid; Isoleucine; Alanine; Glycine; Phenylalanine; Tryptophan; Valine,A1292,NA
@@ -404,7 +404,7 @@
 403,Lidocaine Hydrochloride; Bupivacaine Hydrochloride,A1403,NA
 404,Lidocaine Hydrochloride; Bupivacaine Hydrochloride; Hyaluronidase,A1404,NA
 405,Lidocaine Hydrochloride; Epinephrine,A1241,NA
-406,Lidocaine Hydrochloride; Epinephrine Bitartrate; Tetracaine Hydrochloride,A1406,NA
+406,Lidocaine Hydrochloride; Epinephrine Bitartrate; Tetracaine Hydrochloride,A1245,NA
 407,Lidocaine Hydrochloride; Epinephrine Hydrochloride,A1241,NA
 408,Lidocaine Hydrochloride; Hyaluronidase,A1408,NA
 409,Lidocaine Hydrochloride; Hyoscyamine Sulfate,A1409,NA
@@ -416,15 +416,15 @@
 415,Lidocaine Hydrochloride; Sodium Bicarbonate; Sodium Acetate; Potassium Chloride; Magnesium Chloride; Sodium Chloride; Sodium Gluconate,A1415,NA
 416,Lidocaine Hydrochloride; Tetracaine,A1416,NA
 417,Lidocaine Hydrochloride; Tetracaine Hydrochloride,A1416,NA
-418,Lidocaine Hydrochloride; Tetracaine Hydrochloride; Epinephrine Bitartrate,A1418,NA
+418,Lidocaine Hydrochloride; Tetracaine Hydrochloride; Epinephrine Bitartrate,A1245,NA
 419,Lidocaine Hydrochloride; Tetracaine Hydrochloride; Phenylephrine Hydrochloride,A1419,NA
 420,Lidocaine Hydrochloride; Tetracaine Hydrochloride; Prilocaine Hydrochloride,A1420,NA
 421,Lidocaine Hydrochloride; Tetracaine Hydrochloride; Racepinephrine Hydrochloride,A1421,NA
-422,Lidocaine Hydrochloride; Tetracaine; Epinephrine,A1422,NA
+422,Lidocaine Hydrochloride; Tetracaine; Epinephrine,A1245,NA
 423,Lidocaine Hydrochloride; Triamcinolone Acetonide,A1423,NA
 424,Lidocaine; Benzocaine; Tetracaine,A1070,NA
 425,Lidocaine; Benzocaine; Tetracaine Hydrochloride,A1070,NA
-426,Lidocaine; Bupivacaine,A1426,NA
+426,Lidocaine; Bupivacaine,A1403,NA
 427,Lidocaine; Bupivacaine; Hyaluronidase,A1427,NA
 428,Lidocaine; Dibucaine Hydrochloride; Phenylephrine Hydrochloride; Prilocaine,A1428,NA
 429,Lidocaine; Hyaluronidase; Bupivacaine,A1429,NA
@@ -434,14 +434,14 @@
 433,Lidocaine; Oxymetazoline Hydrochloride,A1433,NA
 434,Lidocaine; Phenylephrine Hydrochloride,A1434,NA
 435,Lidocaine; Phenylephrine Hydrochloride; Prilocaine,A1435,NA
-436,Lidocaine; Prilocaine Hydrochloride; Tetracaine Hydrochloride,A1436,NA
-437,Lidocaine; Prilocaine Hydrochloride; Tetracaine Hydrochloride; Phenylephrine,A1437,NA
-438,Lidocaine; Prilocaine; Tetracaine,A1438,NA
+436,Lidocaine; Prilocaine Hydrochloride; Tetracaine Hydrochloride,A1420,NA
+437,Lidocaine; Prilocaine Hydrochloride; Tetracaine Hydrochloride; Phenylephrine,A1413,NA
+438,Lidocaine; Prilocaine; Tetracaine,A1420,NA
 439,Lidocaine; Racepinephrine,A1439,NA
 440,Lidocaine; Racepinephrine; Bupivacaine,A1440,NA
-441,Lidocaine; Racepinephrine; Tetracaine Hydrochloride,A1441,NA
+441,Lidocaine; Racepinephrine; Tetracaine Hydrochloride,A1421,NA
 442,Lidocaine; Tetracaine,A1416,NA
-443,Lidocaine; Tetracaine Hydrochloride; Prilocaine Hydrochloride,A1443,NA
+443,Lidocaine; Tetracaine Hydrochloride; Prilocaine Hydrochloride,A1420,NA
 444,Lidocaine; Tetracaine; Benzocaine,A1070,NA
 445,Lomustine,A1445,NA
 446,Lysine,A1446,NA
@@ -641,8 +641,8 @@
 640,Pregnenolone; Prasterone; Progesterone,A1640,NA
 641,Pregnenolone; Progesterone,A1641,NA
 642,Pregnenolone; Progesterone; Prasterone,A1642,NA
-643,Prilocaine Hydrochloride; Lidocaine Hydrochloride; Tetracaine,A1643,NA
-644,Prilocaine; Lidocaine; Tetracaine; Phenylephrine,A1644,NA
+643,Prilocaine Hydrochloride; Lidocaine Hydrochloride; Tetracaine,A1420,NA
+644,Prilocaine; Lidocaine; Tetracaine; Phenylephrine,A1413,NA
 645,Prilocaine; Phenylephrine Hydrochloride; Lidocaine,A1645,NA
 646,Procaine Hydrochloride,A1646,NA
 647,Progesterone,A1647,NA
@@ -668,8 +668,8 @@
 667,Pyridoxine Hydrochloride; Thiamine Hydrochloride,A1667,NA
 668,Racepinephrine,A1668,NA
 669,Racepinephrine Hydrochloride; Lidocaine Hydrochloride,A1669,NA
-670,Racepinephrine Hydrochloride; Lidocaine Hydrochloride; Tetracaine Hydrochloride,A1670,NA
-671,Racepinephrine Hydrochloride; Tetracaine Hydrochloride; Lidocaine Hydrochloride,A1671,NA
+670,Racepinephrine Hydrochloride; Lidocaine Hydrochloride; Tetracaine Hydrochloride,A1421,NA
+671,Racepinephrine Hydrochloride; Tetracaine Hydrochloride; Lidocaine Hydrochloride,A1421,NA
 672,Ranibizumab,A1672,NA
 673,Remifentanil Hydrochloride,A1673,NA
 674,Riboflavin 5'-Phosphate Sodium,A1674,NA
@@ -768,13 +768,13 @@
 767,Tetracaine,A1767,NA
 768,Tetracaine Hydrochloride,A1768,NA
 769,Tetracaine Hydrochloride; Benzocaine; Lidocaine Hydrochloride Anhydrous,A1070,NA
-770,Tetracaine Hydrochloride; Epinephrine Bitartrate; Lidocaine Hydrochloride,A1770,NA
+770,Tetracaine Hydrochloride; Epinephrine Bitartrate; Lidocaine Hydrochloride,A1245,NA
 771,Tetracaine Hydrochloride; Lidocaine Hydrochloride; Phenylephrine Hydrochloride,A1771,NA
-772,Tetracaine Hydrochloride; Racepinephrine Hydrochloride; Lidocaine Hydrochloride,A1772,NA
+772,Tetracaine Hydrochloride; Racepinephrine Hydrochloride; Lidocaine Hydrochloride,A1421,NA
 773,Tetracaine; Benzocaine; Lidocaine,A1070,NA
 774,Tetracaine; Lidocaine,A1416,NA
 775,Tetracaine; Lidocaine; Benzocaine,A1070,NA
-776,Tetracaine; Phenylephrine; Prilocaine; Lidocaine,A1776,NA
+776,Tetracaine; Phenylephrine; Prilocaine; Lidocaine,A1413,NA
 777,Thiamine Hydrochloride,A1777,NA
 778,Thiamine Hydrochloride; Benzyl Alcohol; Riboflavin 5'-Phosphate Sodium; Niacinamide; Dexpanthenol; Pyridoxine Hydrochloride,A1778,NA
 779,Thiamine Hydrochloride; Methionine; Choline Chloride; Cyanocobalamin; Inositol,A1779,NA
