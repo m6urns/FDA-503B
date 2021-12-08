@@ -20,10 +20,8 @@ production <- production %>%
 ### Racepinephrine; Lidocaine; Tetracaine A1421
 ### Lidocaine; Prilocaine; Tetracaine A1420
 ### Lidocaine; Prilocaine; Tetracaine; Phenylephrine A1413
-### Lidocaine, Bupivacine A1403
+### Lidocaine, Bupivacaine A1403
 ### Aspartic Acid; Glutamic Acid A1057
-
-## From here back recheck for inclusion of whole list. 
 
 # Bupivacaine Hydrochloride; Fentanyl Citrate A1107
 ### Fentanyl Citrate; Ropivacaine Hydrochloride A1266
