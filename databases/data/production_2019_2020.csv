@@ -334,11 +334,11 @@
 333,Hydromorphone Hydrochloride; Bupivacaine Hydrochloride Related Compound A,A1333,NA
 334,Hydroquinone,A1334,NA
 335,Hydroquinone; Hydrocortisone,A1335,NA
-336,Hydroquinone; Hydrocortisone; Tretinoin,A1336,NA
+336,Hydroquinone; Hydrocortisone; Tretinoin,A1329,NA
 337,Hydroquinone; Tretinoin,A1337,NA
 338,Hydroquinone; Tretinoin; Desoximetasone,A1338,NA
 339,Hydroquinone; Tretinoin; Fluocinonide,A1339,NA
-340,Hydroquinone; Tretinoin; Hydrocortisone,A1340,NA
+340,Hydroquinone; Tretinoin; Hydrocortisone,A1329,NA
 341,Hydroquinone; Tretinoin; Triamcinolone Acetonide,A1341,NA
 342,Hydroquinone; Triamcinolone Acetonide; Tretinoin,A1342,NA
 343,Hydroxocobalamin,A1343,NA
@@ -397,10 +397,10 @@
 396,Leuprolide Acetate,A1396,NA
 397,Levocarnitine,A1397,NA
 398,Levocetirizine Dihydrochloride; Clobetasol Propionate,A1398,NA
-399,Lidocaine,A1399,NA
+399,Lidocaine,A1400,NA
 400,Lidocaine Hydrochloride,A1400,NA
-401,Lidocaine Hydrochloride Anhydrous,A1401,NA
-402,Lidocaine Hydrochloride Anhydrous; Lidocaine Hydrochloride,A1402,NA
+401,Lidocaine Hydrochloride Anhydrous,A1400,NA
+402,Lidocaine Hydrochloride Anhydrous; Lidocaine Hydrochloride,A1400,NA
 403,Lidocaine Hydrochloride; Bupivacaine Hydrochloride,A1403,NA
 404,Lidocaine Hydrochloride; Bupivacaine Hydrochloride; Hyaluronidase,A1404,NA
 405,Lidocaine Hydrochloride; Epinephrine,A1241,NA
@@ -496,7 +496,7 @@
 495,Midazolam Hydrochloride,A1495,NA
 496,Midazolam; Ketamine Hydrochloride; Ondansetron Hydrochloride,A1496,NA
 497,Milrinone Lactate,A1497,NA
-498,Minoxidil; Finasteride,A1498,NA
+498,Minoxidil; Finasteride,A1267,NA
 499,Minoxidil; Finasteride; Dexamethasone Sodium Phosphate,A1499,NA
 500,Minoxidil; Fluocinolone Acetonide; Tretinoin,A1500,NA
 501,Minoxidil; Niacinamide,A1501,NA
@@ -812,13 +812,13 @@
 811,Tropicamide,A1811,NA
 812,Tropicamide Hydrochloride; Phenylephrine Hydrochloride; Cyclopentolate Hydrochloride; Ketorolac Tromethamine,A1812,NA
 813,Tropicamide Hydrochloride; Phenylephrine Hydrochloride; Cyclopentolate Hydrochloride; Tetracaine Hydrochloride,A1813,NA
-814,Tropicamide; Cyclopentolate Hydrochloride; Phenylephrine Hydrochloride,A1814,NA
+814,Tropicamide; Cyclopentolate Hydrochloride; Phenylephrine Hydrochloride,A1184,NA
 815,Tropicamide; Cyclopentolate Hydrochloride; Phenylephrine Hydrochloride; Ketorolac Tromethamine,A1815,NA
 816,Tropicamide; Cyclopentolate; Phenylephrine Hydrochloride,A1591,NA
 817,Tropicamide; Ketorolac Tromethamine; Phenylephrine Hydrochloride; Tetracaine,A1817,NA
 818,Tropicamide; Ketorolac Tromethamine; Proparacaine Hydrochloride; Cyclopentolate Hydrochloride; Phenylephrine Hydrochloride,A1818,NA
 819,Tropicamide; Phenylephrine Hydrochloride,A1591,NA
-820,Tropicamide; Phenylephrine Hydrochloride; Cyclopentolate Hydrochloride,A1820,NA
+820,Tropicamide; Phenylephrine Hydrochloride; Cyclopentolate Hydrochloride,A1184,NA
 821,Tropicamide; Phenylephrine Hydrochloride; Tetracaine,A1821,NA
 822,Tropicamide; Phenylephrine Hydrochloride; Tetracaine Hydrochloride,A1822,NA
 823,Tropicamide; Proparacaine Hydrochloride; Phenylephrine Hydrochloride; Ketorolac Tromethamine,A1823,NA
@@ -832,7 +832,7 @@
 831,Valine; Isoleucine; Taurine; Magnesium Sulfate Heptahydrate; Arginine Hydrochloride; Leucine; Glutamine,A1831,NA
 832,Valine; Isoleucine; Taurine; Magnesium Sulfate Heptahydrate; Sodium Selenite; Arginine Hydrochloride; Leucine; Glutamine,A1832,NA
 833,Vancomycin,A1833,NA
-834,Vancomycin Hydrochloride,A1834,NA
+834,Vancomycin Hydrochloride,A1833,NA
 835,Vancomycin Hydrochloride; Gentamicin Sulfate,A1835,NA
 836,Vardenafil,A1836,NA
 837,Vasopressin,A1837,NA

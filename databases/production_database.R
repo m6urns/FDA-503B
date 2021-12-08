@@ -29,11 +29,11 @@ production <- production %>%
 ### Fentanyl Citrate; Ropivacaine Hydrochloride A1266
 ### Lidocaine Hydrochloride; Phenylephrine Hydrochloride A1412
 ### Phenylephrine Hydrochloride; Tropicamide A1591
-### Tropicamide; Phenylephrine Hydrochloride; Cyclopentolate Hydrochloride
-### Lidocaine
-### Vancomycin
-### Hydrocortisone; Tretinoin; Hydroquinone
-### Finasteride; Minoxidil
+### Tropicamide; Phenylephrine Hydrochloride; Cyclopentolate Hydrochloride A1184
+### Lidocaine A1400
+### Vancomycin A1833
+### Hydrocortisone; Tretinoin; Hydroquinone A1329
+### Finasteride; Minoxidil A1267
 
 
 ### Notes:
