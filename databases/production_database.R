@@ -22,16 +22,25 @@ production <- production %>%
 ### Lidocaine; Prilocaine; Tetracaine; Phenylephrine A1413
 ### Lidocaine, Bupivacine A1403
 ### Aspartic Acid; Glutamic Acid A1057
-### Fentanyl Citrate; Ropivacaine Hydrochloride
-### Lidocaine Hydrochloride; Phenylephrine Hydrochloride
-### Phenylephrine Hydrochloride; Tropicamide
+
+## From here back recheck for inclusion of whole list. 
+
+# Bupivacaine Hydrochloride; Fentanyl Citrate A1107
+### Fentanyl Citrate; Ropivacaine Hydrochloride A1266
+### Lidocaine Hydrochloride; Phenylephrine Hydrochloride A1412
+### Phenylephrine Hydrochloride; Tropicamide A1591
 ### Tropicamide; Phenylephrine Hydrochloride; Cyclopentolate Hydrochloride
 ### Lidocaine
 ### Vancomycin
 ### Hydrocortisone; Tretinoin; Hydroquinone
 ### Finasteride; Minoxidil
 
+
 ### Notes:
 # Lidocaine Hydrochloride; Tetracaine Hydrochloride; Phenylephrine Hydrochloride
 # Look into combinations of ingredients including Phenylenphrine
+
+# Phenylephrine Hydrochloride; Tropicamide; Cyclopentolate Hydrochloride
+# Phenylephrine Hydrochloride; Tropicamide; Ketorolac Tromethamine; Ciprofloxacin Hydrochloride
+# Phenylephrine Hydrochloride; Tropicamide; Proparacaine Hydrochloride; Ketorolac Tromethamine
 

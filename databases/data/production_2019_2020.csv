@@ -263,7 +263,7 @@
 262,Felis Catus Skin; Felis Catus Dander,A1262,NA
 263,Fentanyl,A1263,NA
 264,Fentanyl Citrate,A1264,NA
-265,Fentanyl Citrate; Bupivacaine Hydrochloride,A1265,NA
+265,Fentanyl Citrate; Bupivacaine Hydrochloride,A1107,NA
 266,Fentanyl Citrate; Ropivacaine Hydrochloride,A1266,NA
 267,Finasteride; Minoxidil,A1267,NA
 268,Finasteride; Minoxidil; Tretinoin,A1268,NA
@@ -432,7 +432,7 @@
 431,"Lidocaine; Magnesium Sulfate, Unspecified Form; Adenosine",A1431,NA
 432,Lidocaine; Mupirocin,A1432,NA
 433,Lidocaine; Oxymetazoline Hydrochloride,A1433,NA
-434,Lidocaine; Phenylephrine Hydrochloride,A1434,NA
+434,Lidocaine; Phenylephrine Hydrochloride,A1412,NA
 435,Lidocaine; Phenylephrine Hydrochloride; Prilocaine,A1435,NA
 436,Lidocaine; Prilocaine Hydrochloride; Tetracaine Hydrochloride,A1420,NA
 437,Lidocaine; Prilocaine Hydrochloride; Tetracaine Hydrochloride; Phenylephrine,A1413,NA
@@ -586,8 +586,8 @@
 585,"Phenylephrine Hydrochloride, (+/-)",A1585,NA
 586,Phenylephrine Hydrochloride; Ciprofloxacin Hydrochloride; Cyclopentolate Hydrochloride,A1586,NA
 587,Phenylephrine Hydrochloride; Ketorolac Tromethamine; Ciprofloxacin Hydrochloride; Tropicamide,A1587,NA
-588,Phenylephrine Hydrochloride; Lidocaine,A1588,NA
-589,Phenylephrine Hydrochloride; Lidocaine Hydrochloride,A1589,NA
+588,Phenylephrine Hydrochloride; Lidocaine,A1412,NA
+589,Phenylephrine Hydrochloride; Lidocaine Hydrochloride,A1412,NA
 590,Phenylephrine Hydrochloride; Lidocaine; Tetracaine,A1590,NA
 591,Phenylephrine Hydrochloride; Tropicamide,A1591,NA
 592,Phenylephrine Hydrochloride; Tropicamide; Cyclopentolate Hydrochloride,A1592,NA
@@ -682,7 +682,7 @@
 681,Ropivacaine Hydrochloride; Clonidine Hydrochloride; Ketorolac Tromethamine; Epinephrine,A1681,NA
 682,Ropivacaine Hydrochloride; Clonidine Hydrochloride; Ketorolac Tromethamine; Racephedrine,A1682,NA
 683,Ropivacaine Hydrochloride; Epinephrine; Ketorolac Tromethamine; Clonidine Hydrochloride,A1683,NA
-684,Ropivacaine Hydrochloride; Fentanyl Citrate,A1684,NA
+684,Ropivacaine Hydrochloride; Fentanyl Citrate,A1266,NA
 685,Ropivacaine Hydrochloride; Ketamine; Ketorolac Tromethamine,A1685,NA
 686,Ropivacaine Hydrochloride; Ketorolac Tromethamine; Clonidine Hydrochloride,A1686,NA
 687,Ropivacaine Hydrochloride; Ketorolac Tromethamine; Ketamine,A1687,NA
@@ -814,10 +814,10 @@
 813,Tropicamide Hydrochloride; Phenylephrine Hydrochloride; Cyclopentolate Hydrochloride; Tetracaine Hydrochloride,A1813,NA
 814,Tropicamide; Cyclopentolate Hydrochloride; Phenylephrine Hydrochloride,A1814,NA
 815,Tropicamide; Cyclopentolate Hydrochloride; Phenylephrine Hydrochloride; Ketorolac Tromethamine,A1815,NA
-816,Tropicamide; Cyclopentolate; Phenylephrine Hydrochloride,A1816,NA
+816,Tropicamide; Cyclopentolate; Phenylephrine Hydrochloride,A1591,NA
 817,Tropicamide; Ketorolac Tromethamine; Phenylephrine Hydrochloride; Tetracaine,A1817,NA
 818,Tropicamide; Ketorolac Tromethamine; Proparacaine Hydrochloride; Cyclopentolate Hydrochloride; Phenylephrine Hydrochloride,A1818,NA
-819,Tropicamide; Phenylephrine Hydrochloride,A1819,NA
+819,Tropicamide; Phenylephrine Hydrochloride,A1591,NA
 820,Tropicamide; Phenylephrine Hydrochloride; Cyclopentolate Hydrochloride,A1820,NA
 821,Tropicamide; Phenylephrine Hydrochloride; Tetracaine,A1821,NA
 822,Tropicamide; Phenylephrine Hydrochloride; Tetracaine Hydrochloride,A1822,NA
