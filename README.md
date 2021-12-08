@@ -5,7 +5,7 @@ Utility to scrape and produce reports on 503B facilities.
 ### Currently Implemented:
   * Automatic facility scraping. 
   * Automatic production report scraping with RSelenium.
-  * UID system for som actives.
+  * UID system for some actives.
 
 ### Planned to implement:
   * Automatic cleaning and formatting of raw production data.
