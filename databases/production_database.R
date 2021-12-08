@@ -13,8 +13,8 @@ production <- production %>%
 
 ## Reassigned UID's
 
-### BLT A1070
-### LT A1416
+### Lidocaine; Tetracaine; Benzocaine A1070
+### Lidocaine; Tetracaine A1416
 ### Epinephrine; Lidocaine Hydrocloride A1241
 ### Lidocaine; Epinephrine; Tetracaine A1245
 ### Racepinephrine; Lidocaine; Tetracaine A1421
